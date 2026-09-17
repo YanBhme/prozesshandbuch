@@ -173,7 +173,7 @@ struct SettingsView: View {
         model.publish(next, expected: model.catalog.Revision) { windowsSid = "" }
     }
 }
-final class AppDelegate: NSObject, NSApplicationDelegate {
+final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
     private var window: NSWindow?
     private let model = HandbookModel()
     func applicationDidFinishLaunching(_ notification: Notification) {
@@ -183,7 +183,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         w.title = "Bruno Grüttner · Prozesshandbuch"
         w.contentView = NSHostingView(rootView: content)
         w.contentMinSize = NSSize(width: 1050, height: 720)
-        w.isReleasedWhenClosed = false
+        w.isReleasedWhenClosed = false; w.delegate = self
         w.center(); w.setFrameAutosaveName("HandbookMain"); window = w
         buildMenu(); w.makeKeyAndOrderFront(nil); NSApp.activate(ignoringOtherApps: true)
         // CI captures only this application's own view, never the desktop.
@@ -217,6 +217,19 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     func applicationShouldHandleReopen(_ sender: NSApplication, hasVisibleWindows flag: Bool) -> Bool {
         window?.makeKeyAndOrderFront(nil); return true
     }
+    private func confirmClose() -> Bool {
+        if model.busy {
+            let a = NSAlert(); a.messageText = "Vorgang läuft noch"; a.informativeText = "Bitte warte, bis der Datenzugriff abgeschlossen ist."; a.runModal(); return false
+        }
+        if model.editing {
+            let a = NSAlert(); a.messageText = "Bearbeitung schließen?"; a.informativeText = "Nicht veröffentlichte Änderungen gehen verloren."
+            a.addButton(withTitle: "Verwerfen und schließen"); a.addButton(withTitle: "Weiter bearbeiten")
+            guard a.runModal() == .alertFirstButtonReturn else { return false }; model.editing = false
+        }
+        return true
+    }
+    func windowShouldClose(_ sender: NSWindow) -> Bool { confirmClose() }
+    func applicationShouldTerminate(_ sender: NSApplication) -> NSApplication.TerminateReply { confirmClose() ? .terminateNow : .terminateCancel }
     func applicationShouldTerminateAfterLastWindowClosed(_ sender: NSApplication) -> Bool { true }
 }
 @main struct ProzesshandbuchApp {
