@@ -1,0 +1,282 @@
+﻿AKTUELL: VERSION 0.6.0 – GEMEINSAME NUTZUNG MIT MAC
+
+Diese Fassung unterstützt das gemeinsame Datenformat 3. Alle Windows-Nutzer
+müssen Version 0.6.0 oder neuer verwenden, sobald erstmals damit gespeichert wird.
+Ältere Datenformate bleiben lesbar. Vor dem Umstellen den Datenordner sichern.
+
+Mac freigeben: Unter deinem Windows-Bearbeiterkonto im Hauptmenü auf
+„Bearbeiterkonten“ klicken. Die Mac-Kennung aus den Einstellungen der Mac-App
+übernehmen und speichern. Nur dein eigenes Mac-Konto zusätzlich freigeben.
+Für ein am Mac angelegtes Handbuch wird umgekehrt deine Windows-Kennung in
+den Mac-Einstellungen freigegeben. Die Kennung zeigt „Bearbeiterkonten“ an.
+Lesezugriff benötigt keine zusätzliche App-Freigabe.
+
+Alle Veröffentlichungen nutzen zusätzlich .veroeffentlichen.lock. Eine nach
+einem Absturz verbliebene Sperre darf die IT erst entfernen, wenn alle Apps
+geschlossen sind. Die Serverrechte gelten unverändert: Mitarbeiter = Lesen,
+deine Konten = Ändern. Die App setzt keine Serverrechte.
+
+Quellcode: https://github.com/YanBhme/prozesshandbuch
+Mac-Anleitung: macOS/LIESMICH-Mac.txt im Quellcode-Repository
+
+Die folgenden Hinweise dokumentieren die Windows-Bedienung. Bei Aussagen zum
+Datenformat oder zur Kontofreigabe gelten die Angaben oben.
+
+PROZESSHANDBUCH – WINDOWS-TESTVERSION 0.5.1
+Stand: 10.09.2026
+
+LIEFERUMFANG UND TESTSTATUS
+Native Windows-Desktop-App als C#-Quellcode, lokales Installationsskript und
+automatisierte Speicherprüfungen. Keine vorkompilierte oder signierte EXE/MSI.
+Installieren.cmd erstellt die EXE mit dem Windows-.NET-Framework-Compiler,
+führt Speicherprüfungen aus und installiert die App lokal. Es lädt nichts
+aus dem Internet nach. Die Anwendung verwendet keine Cloud.
+Windows-Kompilierung, Bedienoberfläche und euer Netzlaufwerk konnten in der
+Erstellungsumgebung nicht ausgeführt werden. Zuerst auf einem Windows-
+Testrechner mit einem Testordner abnehmen.
+
+KORREKTUREN UND PROJEKTÜBERTRAGUNG 0.5.1
+- Aktualisierung vom Netzlaufwerk läuft im Hintergrund.
+- Ergebnisse überholter Ladevorgänge überschreiben keinen neueren lokalen Stand.
+- Dokumentkopien werden vor dem Ersetzen vorhandener Dateien vollständig kopiert.
+- build.ps1 und .github/workflows/windows.yml bereiten einen Windows-Build
+  einschließlich Speicherprüfungen vor. Noch nicht auf GitHub ausgeführt.
+- Bearbeitbarer Figma-Entwurf:
+  https://www.figma.com/design/TudbEvSk575cotEGA9KYLl
+Der Figma-Entwurf ist keine laufende Windows-Anwendung.
+
+HAUPTMENÜ UND VORLAGEN 0.5
+Die App startet mit zwei Bereichen: „Anleitung“ und „Vorlagen“.
+Beide enthalten eine Schaltfläche „Hauptmenü“, um wieder zurückzugehen.
+Beim Start erscheint kein Ordnerdialog, auch nicht bei fehlender Verbindung.
+Eine vorhandene Verbindung wird im Hintergrund geladen. Unter
+„Einstellungen · Datenordner“ wird der gemeinsame Ordner einmalig ausgewählt.
+Die Verbindung ist für echte gemeinsame Vorlagen und Bearbeitung erforderlich.
+Ohne Verbindung bleibt die eingebaute Kategorienübersicht nutzbar.
+
+Vorlagen bereitstellen:
+1. Mit deinem hinterlegten Bearbeiterkonto den gemeinsamen Datenordner verbinden.
+2. Im Hauptmenü „Vorlagen“ wählen.
+3. „Vorlage hochladen“ anklicken und eine oder mehrere Dateien auswählen.
+4. Nach erfolgreichem Speichern sind sie für die Mitarbeiter verfügbar.
+Das ist eine Kopie auf dem Netzlaufwerk; es erfolgt kein Cloud-Upload.
+Dateitypen: PDF, DOCX, XLSX, PPTX, TXT, CSV, PNG, JPG und JPEG.
+Vorlagen sind unabhängig von den Anhängen einzelner Prozessschritte.
+
+Vorlagen herunterladen:
+1. „Vorlagen“ öffnen, bei Bedarf suchen und eine Datei auswählen.
+2. „Kopie speichern“ wählen und den lokalen Zielort auswählen.
+3. „Öffnen“ öffnet die gemeinsame Datei im Standardprogramm.
+Im Dokumentbereich einer Anleitung ist „Kopie speichern“ ebenfalls verfügbar.
+Mitarbeiter benötigen für gemeinsame Dateien ausschließlich Leserechte.
+Bereits vorhandene gleichnamige Dateien am Ziel werden nur nach Bestätigung
+des Windows-Speicherdialogs überschrieben.
+
+Layoutkorrektur:
+Kategorie-Schaltflächen und ihre Zeilen wachsen mit der Schriftgröße.
+Such- und Kategoriebeschriftungen haben eigene, automatisch bemessene Zeilen.
+Die tatsächliche Darstellung bei 125/150/200 % ist unter Windows zu prüfen.
+
+Datenformat:
+Version 0.5 liest ältere Handbücher (Schema 1) und aktuelle (Schema 2).
+Bei der nächsten Veröffentlichung wird Schema 2 gespeichert, um zu verhindern,
+dass ältere Apps die neue Vorlagenliste beim Speichern unbemerkt verlieren.
+Alte Apps können diesen neuen Stand nicht lesen: vor der ersten Veröffentlichung
+alle Arbeitsplätze auf 0.5 aktualisieren. Vorherige Sicherungen bleiben erhalten.
+Die App erstellt beim Lesen keine neue gemeinsame Prozessdatei.
+Die Fenstertitelleiste zeigt „Prozesshandbuch 0.5“.
+
+HISTORIE: KORREKTUR 0.4.1
+Die Kategorien sind bereits beim Start sichtbar, auch ohne gewählten oder
+erreichbaren Prozessordner. Links stehen die Schaltflächen WEG-Verwaltung,
+Miethäuser und Allgemeine Prozesse; darunter erscheinen die Unterkategorien.
+Ohne Verbindung werden nur die vorgegebenen leeren Einträge gezeigt und
+keine Prozessdaten als geladen ausgegeben. Bearbeitung bleibt gesperrt.
+Leere/unvollständige Kategorienlisten alter Handbücher werden ergänzt.
+Diese Ergänzung verändert beim Lesen keine Datei auf dem Netzlaufwerk.
+Die Fenstertitelleiste zeigt „Prozesshandbuch 0.4.1“. Fehlt diese Versionsangabe,
+läuft eine ältere Installation. App schließen und das neue Paket installieren.
+
+KATEGORIEN UND SKALIERUNG 0.4
+Die vorgegebene Struktur umfasst 3 Hauptkategorien und 12 Unterkategorien.
+Hauptkategorie über „Kategorie“ wählen; die Unterkategorien stehen darunter.
+Leere Unterkategorien werden als „Ablauf folgt“ angezeigt. Es sind keine
+Prozessschritte oder fachlichen Arbeitsanweisungen vorgegeben.
+
+I. WEG-Verwaltung (Wohnungseigentümergemeinschaften)
+- Checkliste Eigentümerwechsel
+- Wohngeldabrechnungen / Wirtschaftspläne
+- Anschreiben Jahresabrechnung
+- Versammlungsnachbereitung (Eigentümerversammlung)
+- Protokoll Verwalterbestellung beglaubigen lassen
+
+II. Miethäuser (Mietverwaltung)
+- Checkliste Mieterwechsel
+
+III. Allgemeine Prozesse (gelten für beide Bereiche / unternehmensweit)
+- Organisation & Ablage
+- Stammdaten & Formulare (SEPA, Kontaktdaten)
+- Versicherungen & Schadensfälle
+- Übersichtsliste laufende Abrechnungen
+- Firmenpool
+- Personal (Onboarding, Hauswarte → Lohnabrechnung)
+
+Bestehende Handbücher: Beim Lesen wird die fehlende Kategorienstruktur lokal
+ergänzt. Dabei wird die gemeinsame Datei nicht verändert. Bei der nächsten
+Veröffentlichung durch den Bearbeiter wird sie mitgespeichert. Bestehende
+Prozesse bleiben erhalten. Ein leerer Struktureintrag wird erst beim
+Veröffentlichen eines Ablaufs zu einem gespeicherten Prozess. Alte App-
+Versionen zeigen die virtuelle Struktur nicht: alle Arbeitsplätze aktualisieren.
+Die Unterkategorien selbst werden durch dieses App-Update vorgegeben.
+Ein gelöschter Prozess hinterlässt wieder eine leere Unterkategorie.
+
+Skalierung: Das Windows-Manifest aktiviert System-DPI-Awareness. Die
+Schrittkarten berücksichtigen den Skalierungsfaktor. Dies vermeidet die
+pauschale Bitmap-Vergrößerung auf dem Systemmonitor. Bei mehreren Monitoren
+mit unterschiedlichen Skalierungen kann Windows beim Verschieben weiterhin
+skalieren; eine vollständig dynamische Per-Monitor-DPI-Unterstützung ist nicht
+enthalten. Die Darstellung bei 125/150/200 Prozent muss unter Windows geprüft
+werden. Die originalen JPG-Logos bleiben Rastergrafiken.
+Referenz:
+https://learn.microsoft.com/en-us/windows/win32/hidpi/setting-the-default-dpi-awareness-for-a-process
+
+NEUE OBERFLÄCHE 0.3
+- Grundlegend neue Anordnung: feste Seitenleiste und eigener Arbeitsbereich.
+- Eigene abgerundete Schaltflächen statt klassischer Windows-Buttonrahmen.
+- Navigation über schlichte Flächen statt Windows-Registerreiter.
+- Anleitungen als getrennte Schrittkarten mit Checklisten und Dokumentlinks.
+- Zusätzliche Textansicht für Markieren, Kopieren und Tastatur-/Screenreaderzugriff.
+- Dokumente können weiterhin über die Dokumentliste mit der Tastatur geöffnet
+  werden. Die grafischen Karten selbst sind eine ergänzende visuelle Ansicht.
+- Ruhigere Prozessauswahl und übersichtlichere Bearbeitungstabelle.
+- Original-Logo und Firmenfarben bleiben erhalten.
+- Datenformat, Ordnerrechte, Veröffentlichung und Sicherungen unverändert.
+
+DESIGN-UPDATE 0.2
+- Originales Firmenlogo direkt in die Anwendung eingebunden.
+- Dunkelblau #001743 und Orange #E55411 aus dem Logo übernommen.
+- Helle Arbeitsflächen, klare Überschriften und gut lesbare Prozessliste.
+- Sichtbarer Lesemodus bzw. Bearbeitungsmodus; Bearbeitungsaktionen nur für
+  das hinterlegte Konto sichtbar.
+- Einheitlich gestaltete Anleitung, Diagramme, Dokumente und Prozesseditor.
+- Keine neuen Beispielprozesse oder Änderungen am Format der Prozessdaten.
+Update: App schließen, neues ZIP vollständig entpacken und Installieren.cmd
+erneut ausführen. Gemeinsame Daten und gespeicherte Ordnerauswahl bleiben
+erhalten. Jeder Arbeitsplatz benötigt das Design-Update einmal.
+
+1. INSTALLATION
+- ZIP vollständig in einen lokalen Ordner entpacken.
+- Installieren.cmd doppelklicken, nicht unter einem anderen Admin-Konto.
+- Nach Kompilierung und 21 Speicherprüfungen entstehen ein Desktop-Symbol
+  und ein Startmenü-Eintrag. Die App startet automatisch.
+- Installationsziel: %LOCALAPPDATA%\Programs\Prozesshandbuch
+- Bei einer Firmenrichtlinie, die Programme/Skripte blockiert, IT einbeziehen.
+  Das Paket ändert keine Sicherheitsrichtlinien.
+- Fehlt der Compiler, kann die IT die App mit einem freigegebenen C#-Compiler
+  und den im Installationsskript angegebenen Framework-Referenzen erstellen.
+- Deinstallation: Startmenü > Prozesshandbuch > Deinstallieren.
+  Gemeinsame Daten und lokale Ordnerauswahl bleiben erhalten.
+
+2. GEMEINSAM MIT EURER IT EINRICHTEN
+Alle benötigen Zugriff auf DENSELBEN gemeinsamen Ordner. Persönliche
+Netzlaufwerke je Mitarbeiter allein reichen nicht aus.
+Empfehlung: \\Server\Freigabe\Prozesshandbuch. Gemappte Laufwerke sind möglich.
+Verschiedene Laufwerksbuchstaben dürfen auf denselben Ordner zeigen.
+Es muss eine echte Dateifreigabe mit Dateisperren und atomarem Dateiaustausch
+sein. Kein OneDrive-/SharePoint-Synchronisationsordner.
+
+Die IT richtet vor dem Einsatz Freigabe- UND NTFS-Rechte ein:
+- Dein individuelles Windows-Konto: Ändern in Ordner und Unterordnern.
+- Mitarbeiter: Lesen/Ausführen und Anzeigen, kein Schreib-/Löschrecht.
+- IT-Administratoren: Verwaltung/Sicherung entsprechend euren Firmenvorgaben.
+- Vererbte Schreibrechte anderer Gruppen ebenfalls prüfen.
+Die App verändert diese Rechte nicht. Ihre Kontoprüfung ersetzt keine
+Dateirechte: Wer prozesse.json außerhalb der App ändern darf, könnte auch das
+dort hinterlegte Bearbeiterkonto ändern.
+
+Du startest zuerst, wählst den vorbereiteten leeren Ordner und bestätigst
+das Anlegen. Die SID deines Windows-Kontos wird als Bearbeiter hinterlegt.
+Mitarbeiter wählen danach denselben Ordner mit der vorhandenen prozesse.json.
+Sie sollen kein neues Handbuch anlegen. Individuelle Windows-Konten sind
+Voraussetzung; ein gemeinsam verwendetes Konto erlaubt keine Unterscheidung.
+
+3. PROZESSE BEARBEITEN
+- „+ Prozess“: Titel, Abteilung, Thema und Überblick erfassen.
+- „+ Schritt“: Titel, Zuständigkeit und Ziel-ID eintragen.
+- Unter der Schrittliste: Anweisung, Checkliste und Dokumente hinterlegen.
+- Checkliste: ein Punkt pro Zeile; nur Lesetext, keine Aufgabenverfolgung.
+- Schritt-IDs bleiben beim Verschieben stabil.
+- Normaler Schritt: „Weiter / Ja“ = ID des nächsten Schritts.
+- Entscheidung: Titel als Frage; „Weiter / Ja“ und „Nein“ = die Ziel-IDs.
+- Beide Ziele leer = Ende. Rücksprünge sind möglich.
+- Beispiel: 1 „Anfrage vollständig?“ → Ja: 2 / Nein: 3;
+  2 „Bearbeitung durchführen“ → Ende; 3 „Rückfrage stellen“ → 1.
+- Die Reihenfolge der Liste bestimmt die vertikale Diagrammdarstellung.
+- Maximal 60 Schritte je Prozess; sehr große Abläufe sinnvoll aufteilen.
+- „Veröffentlichen“ speichert den Prozess und seine Dokumente.
+- Änderungen werden erst mit Veröffentlichung für andere sichtbar.
+- Abbrechen verwirft ungespeicherte Änderungen nach Rückfrage.
+
+4. LESEN UND SUCHEN
+- Abteilungsfilter und Suche über Titel, Thema, Überblick, Zuständigkeiten,
+  Anweisungen, Checklisten und Dokumentnamen.
+- Dateiinhalte angehängter Dokumente werden nicht durchsucht.
+- Ablaufdiagramme zeigen Schritte und beschriftete Ja-/Nein-Verbindungen.
+  Dieselben Verbindungen sind in der Arbeitsanweisung textlich verfügbar.
+- Dokumente per Doppelklick oder „Dokument öffnen“ im Standardprogramm öffnen.
+- PDF, DOCX, XLSX, PPTX, TXT, CSV, PNG, JPG und JPEG werden unterstützt.
+- Dokumente werden in den gemeinsamen Ordner kopiert. Änderungen an der
+  ursprünglichen Datei erscheinen nicht automatisch. Eine neue Version
+  erneut anhängen und den alten Verweis entfernen.
+- Mitarbeiter können Dateien lokal kopieren; die App ist kein Kopierschutz.
+- Prüfung auf neue Prozessstände alle 30 Sekunden, sofort über Aktualisieren.
+- Bei nicht reagierendem Server kann die Windows-Netzwerkantwort dauern.
+- Bei Lesefehlern bleibt nur der bereits geladene Stand im Arbeitsspeicher,
+  als möglicherweise veraltet markiert. Die Bearbeitung wird gesperrt.
+- Keine gespeicherte Offline-Kopie nach einem Neustart.
+
+5. DATEN UND WIEDERHERSTELLUNG
+Im gemeinsamen Ordner:
+  prozesse.json      veröffentlichte Prozesse, Bearbeiter-SID, Versionskennung
+  Dokumente\        separat benannte Dokumentkopien
+  Sicherungen\      vorherige JSON-Stände vor Änderung/Löschung
+  bearbeitung.lock  Datei für den exklusiven Schreibzugriff
+Die Lockdatei bleibt liegen. Die Betriebssystem-Dateisperre ist entscheidend,
+nicht das Vorhandensein der Datei.
+Gleichzeitige und veraltete Veröffentlichungen werden zurückgewiesen.
+Veröffentlichung verwendet temporäre Dateien und atomaren Dateiaustausch;
+wenn die Freigabe dies nicht unterstützt, wird nicht veröffentlicht.
+
+Die IT sichert den GESAMTEN Ordner einschließlich Dokumenten regelmäßig.
+JSON-Historie im selben Ordner ersetzt keine externe Datensicherung.
+Nicht mehr verknüpfte Anhänge bleiben für alte Sicherungsstände erhalten.
+Keine automatische Löschung alter Sicherungen oder Dokumente.
+Fehlgeschlagenes Kopieren kann eine nicht referenzierte Restdatei hinterlassen.
+
+Wiederherstellung durch IT/Bearbeiter:
+- Alle Bearbeitungsfenster schließen; aktuellen Gesamtordner separat sichern.
+- Gewünschten JSON-Stand aus Sicherungen als prozesse.json zurückkopieren.
+- Zugehörige Dokumente müssen weiterhin vorhanden sein.
+- Dateirechte prüfen; App aktualisieren.
+- Nicht während einer laufenden Veröffentlichung wiederherstellen.
+Bearbeiterwechsel: IT sichert den Stand, ändert EditorSid und EditorName auf
+das neue Konto, setzt eine neue eindeutige Revision und passt Ordnerrechte an.
+
+6. ABNAHME AUF EUREN WINDOWS-RECHNERN
+[ ] Installation kompiliert; 21 Speicherprüfungen bestanden.
+[ ] App und Schrift bei 100/150/200 % Windows-Skalierung bedienbar.
+[ ] Testhandbuch anlegen, Entscheidung mit 3 Schritten veröffentlichen.
+[ ] Anderes Windows-Konto sieht nur Lesen; Schreiben im Explorer verweigert.
+[ ] Mitarbeiter sieht Änderungen nach Aktualisierung/spätestens 30 Sekunden.
+[ ] PDF/Office-Dokument unter beiden Konten öffnen.
+[ ] Bearbeitung abbrechen: veröffentlichter Stand bleibt unverändert.
+[ ] Zwei Editorfenster: veraltete Veröffentlichung wird abgelehnt.
+[ ] Netzlaufwerk trennen: Fehlerstatus, keine Veröffentlichung; neu verbinden.
+[ ] Sicherung in einem separaten Testordner wiederherstellen.
+Erst nach Abnahme reale Unternehmensprozesse einpflegen.
+
+TECHNISCHE BASIS
+Windows Forms, .NET Framework 4.x, C#-5-kompatibler Quellcode, keine externen
+Paketabhängigkeiten. JSON-Schema 1. Microsoft-Dokumentation:
+https://learn.microsoft.com/en-us/dotnet/framework/install/on-windows-and-server
+https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/compiler-options/

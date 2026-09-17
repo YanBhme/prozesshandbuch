@@ -1,0 +1,26 @@
+name: macOS universal app and storage tests
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  macos:
+    runs-on: macos-15
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build universal app and run tests
+        run: bash macOS/build.sh
+      - name: Launch smoke test
+        run: |
+          open macOS/build/Prozesshandbuch.app
+          sleep 8
+          pgrep -x Prozesshandbuch
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Prozesshandbuch-Mac
+          path: |
+            macOS/build/Prozesshandbuch-Mac.dmg
+            macOS/build/Prozesshandbuch-Mac.zip
+          if-no-files-found: error

@@ -1,0 +1,79 @@
+BRUNO GRÜTTNER – PROZESSHANDBUCH FÜR MAC
+Version 0.6.0 · macOS 13 Ventura oder neuer · Intel und Apple Silicon
+
+INSTALLATION
+1. DMG öffnen und Prozesshandbuch.app auf „Programme“ ziehen.
+   Alternativ das ZIP entpacken und die App in den Programme-Ordner kopieren.
+2. App im Programme-Ordner öffnen. Sie bleibt dort dauerhaft installiert.
+3. Für ein Symbol im Dock: Rechtsklick auf das App-Symbol → Optionen → Im Dock behalten.
+   Für den Schreibtisch: Im Finder einen Alias der App erstellen und auf den Schreibtisch ziehen.
+
+Diese Testversion ist lokal signiert (Ad-hoc), aber noch nicht mit einer Apple
+Developer-ID signiert und nicht von Apple notarisiert. macOS kann das Öffnen
+blockieren. Nachdem du die App einmal zu öffnen versucht hast, findest du
+unter Systemeinstellungen → Datenschutz & Sicherheit ggf. „Dennoch öffnen“.
+Nutze diese Ausnahme nur für die hier bereitgestellte Testversion. Auf einem
+verwalteten Firmen-Mac kann dafür eine Freigabe der IT erforderlich sein.
+Keine globale Abschaltung der macOS-Sicherheitsprüfung notwendig.
+Apple-Hinweise: https://support.apple.com/de-de/102445
+
+ERSTER START
+Die drei Kategorien und alle zwölf Unterkategorien sind sofort sichtbar.
+Prozessabläufe wurden noch nicht erfunden oder hinterlegt.
+Es erscheint keine automatische Ordnerabfrage.
+Über „Einstellungen → Datenordner verbinden“ wählst du den gemeinsamen Ordner.
+Für einen lokalen Test kannst du auch einen neuen leeren Ordner auswählen.
+Die App fragt dann, ob sie ein Handbuch anlegen soll; dein Mac-Konto ist Bearbeiter.
+
+NETZLAUFWERK / GEMEINSAME NUTZUNG MIT WINDOWS
+Finder → Gehe zu → Mit Server verbinden (Cmd+K), dann eure SMB-Freigabe verbinden.
+Den konkreten Servernamen erhältst du von eurer IT. Es werden keine Passwörter
+in der App gespeichert. Der Mac-Ordnerpfad ist anders als der Windows-Laufwerksbuchstabe;
+beide müssen auf denselben Ordner auf dem Server zeigen.
+Für Mitarbeiter: Lesen. Für dein Konto: Ändern. Diese Serverrechte setzt eure IT.
+Bei Verbindungsabbruch bleiben bereits geladene Inhalte sichtbar und werden
+als möglicherweise veraltet markiert. Bearbeiten und Dokumentzugriff sind gesperrt.
+Nach einem Neustart ohne Datenordner sind nur die Kategorien verfügbar.
+
+BEARBEITEN AUF BEIDEN SYSTEMEN
+Ein Windows-Handbuch aus Version 0.5.1 oder älter ist am Mac zunächst nur lesbar.
+1. Windows-Version 0.6.0 oder neuer verwenden.
+2. In den Mac-Einstellungen deine Mac-Kennung kopieren.
+3. Unter deinem Windows-Bearbeiterkonto im Hauptmenü „Bearbeiterkonten“ öffnen,
+   Mac-Kennung eintragen und speichern.
+Umgekehrt: Für ein am Mac angelegtes Handbuch zeigt die Windows-App unter
+„Bearbeiterkonten“ deine Windows-Kennung. Diese kannst du in den Mac-Einstellungen
+als deinen zusätzlichen Bearbeiterzugang freigeben.
+Mac und Windows nutzen danach Format 3. Alle Windows-Nutzer müssen auf 0.6.0
+oder neuer aktualisieren; alte Versionen verweigern dieses Format absichtlich.
+Die Freigaben ergänzen die Serverrechte, sie ersetzen sie nicht.
+
+ANLEITUNGEN UND VORLAGEN
+Anleitung: Kategorie wählen, Unterkategorie anklicken, als Bearbeiter „Bearbeiten“.
+Prozessschritte enthalten Zuständigkeit, Anweisung, Checkliste, Dokumente und
+Weiter-/Ja-/Nein-Ziele. Leeres Weiter-Ziel bedeutet Ende.
+Die Ablaufansicht stellt Schritte und anklickbare Verzweigungsziele dar.
+Checklisten dienen zum Nachlesen; Mitarbeiter-Bearbeitungsstände werden nicht gespeichert.
+Vorlagen: „Vorlage hochladen“ ist nur für den freigegebenen Bearbeiter sichtbar.
+„Kopie speichern“ lädt eine lokale Datei herunter. „Öffnen“ öffnet ebenfalls eine
+lokale Arbeitskopie; Änderungen daran werden nicht automatisch hochgeladen.
+Unterstützt: PDF, DOCX, XLSX, PPTX, TXT, CSV, PNG, JPG und JPEG.
+Suche umfasst Prozesstexte und Dokumentnamen, nicht den Inhalt angehängter Dateien.
+
+SICHERUNGEN / KONFLIKTE
+Vor jedem Ersetzen wird der vorherige Datenstand unter Sicherungen gespeichert.
+Prozessdaten: prozesse.json. Anhänge: Dokumente. Diese gemeinsam sichern.
+Veraltete Bearbeitungen werden beim Veröffentlichen abgewiesen.
+Mac und Windows sperren Veröffentlichungen über .veroeffentlichen.lock.
+Nach einem Absturz kann eine Sperre zurückbleiben. Erst alle Apps schließen;
+dann kann die IT diese Sperrdatei entfernen. Die App löscht fremde Sperren nicht automatisch.
+Für Wiederherstellung alle Apps schließen, aktuellen Ordner sichern und die
+gewünschte JSON-Sicherung als prozesse.json wiederherstellen. Anhänge erhalten.
+Ein echter gemeinsamer SMB-Test mit euren Serverrechten steht noch aus.
+
+ENTFERNEN
+App im Programme-Ordner in den Papierkorb legen. Gemeinsame Daten bleiben erhalten.
+
+QUELLCODE UND DESIGN
+https://github.com/YanBhme/prozesshandbuch
+https://www.figma.com/design/TudbEvSk575cotEGA9KYLl

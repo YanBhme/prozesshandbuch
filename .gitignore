@@ -1,0 +1,13 @@
+dist/
+*.exe
+*.pdb
+*.tmp
+prozesse.json
+Dokumente/
+Sicherungen/
+ordner.txt
+
+macOS/build/
+.DS_Store
+.veroeffentlichen.lock
+bearbeitung.lock
