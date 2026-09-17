@@ -41,6 +41,16 @@ public static class StorageTests {
    var badTemplate=Storage.Clone(c);badTemplate.Templates[0].File="..\\fremd.pdf";
    Reject(delegate{Storage.Validate(badTemplate);},"Unsicheren Vorlagenpfad abgelehnt");
    Check(legacy.Templates!=null&&legacy.Templates.Count==0,"Alte Handbücher erhalten eine leere Vorlagenliste");
+   string fixture=Environment.GetEnvironmentVariable("PH_FIXTURE_OUT");
+   if(!String.IsNullOrWhiteSpace(fixture)){
+    Directory.CreateDirectory(Path.Combine(fixture,"Dokumente"));var export=Storage.Clone(c);export.EditorMacId="mac:fixture:501";
+    File.WriteAllText(Path.Combine(fixture,"Dokumente","test-vorlage.pdf"),"Fixture only");
+    File.WriteAllText(Path.Combine(fixture,"prozesse.json"),Storage.Json().Serialize(export),System.Text.Encoding.UTF8);
+   }
+   string imported=Environment.GetEnvironmentVariable("PH_FIXTURE_IN");
+   if(!String.IsNullOrWhiteSpace(imported)){
+    var fromMac=Storage.Read(imported);Check(fromMac.Schema==3&&fromMac.EditorMacId=="mac:fixture:501"&&fromMac.Processes.Count==1&&fromMac.Templates.Count==1,"Von Mac geschriebene Daten gelesen");
+   }
    Console.WriteLine(checks+" Speicherprüfungen bestanden.");return 0;
   }catch(Exception e){Console.Error.WriteLine("Prüfung fehlgeschlagen: "+e.Message);return 1;}finally{try{Directory.Delete(root,true);}catch{}}
  }

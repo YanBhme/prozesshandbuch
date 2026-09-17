@@ -176,6 +176,19 @@ struct SettingsView: View {
 final class AppDelegate: NSObject, NSApplicationDelegate {
     func applicationDidFinishLaunching(_ notification: Notification) {
         NSApp.setActivationPolicy(.regular); NSApp.activate(ignoringOtherApps: true)
+        // CI-only capture of this application's own window; never records the desktop.
+        if let i = CommandLine.arguments.firstIndex(of: "--capture"), CommandLine.arguments.count > i + 1 {
+            let path = CommandLine.arguments[i + 1]
+            DispatchQueue.main.asyncAfter(deadline: .now() + 3) {
+                guard let view = NSApp.windows.first(where: { $0.isVisible })?.contentView,
+                      let rep = view.bitmapImageRepForCachingDisplay(in: view.bounds) else { exit(1) }
+                view.cacheDisplay(in: view.bounds, to: rep)
+                do {
+                    guard let data = rep.representation(using: .png, properties: [:]) else { exit(1) }
+                    try data.write(to: URL(fileURLWithPath: path)); NSApp.terminate(nil)
+                } catch { exit(1) }
+            }
+        }
     }
     func applicationShouldTerminateAfterLastWindowClosed(_ sender: NSApplication) -> Bool { true }
 }

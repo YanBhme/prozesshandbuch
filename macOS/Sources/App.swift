@@ -196,7 +196,7 @@ struct Card<Content: View>: View {
 }
 struct MainView: View {
     @EnvironmentObject var model: HandbookModel
-    @State private var menu = "Start"
+    @State private var menu = CommandLine.arguments.contains("--capture-guide") ? "Anleitung" : "Start"
     @State private var category = "Alle Bereiche"
     @State private var query = ""
     @State private var selected: String?

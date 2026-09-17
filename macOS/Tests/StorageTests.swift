@@ -78,6 +78,7 @@ import Darwin
             let fixture = URL(fileURLWithPath: CommandLine.arguments[1])
             let loaded = try Storage.read(fixture)
             try check(loaded.EditorMacId == "mac:fixture:501" && loaded.Processes.count == 1 && loaded.Templates.count == 1, "Echte Windows-JSON-Datei gelesen")
+            _ = try Storage.save(fixture, catalog: loaded, expected: loaded.Revision, identity: "mac:fixture:501")
         }
         print("\(checks) Speicherprüfungen bestanden.")
     }

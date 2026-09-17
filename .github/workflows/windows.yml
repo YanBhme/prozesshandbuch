@@ -1,4 +1,4 @@
-name: Windows build and storage tests
+name: Windows build and cross-platform storage tests
 on:
   push:
   pull_request:
@@ -12,8 +12,46 @@ jobs:
       - uses: actions/checkout@v4
       - name: Compile and test
         shell: powershell
-        run: ./build.ps1
+        run: |
+          $env:PH_FIXTURE_OUT = Join-Path $env:RUNNER_TEMP 'windows-fixture'
+          ./build.ps1
       - uses: actions/upload-artifact@v4
         with:
           name: Prozesshandbuch-Windows
           path: dist/Prozesshandbuch-Windows.zip
+          if-no-files-found: error
+      - uses: actions/upload-artifact@v4
+        with:
+          name: windows-fixture
+          path: ${{ runner.temp }}/windows-fixture
+  mac-compatibility:
+    needs: windows
+    runs-on: macos-15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          name: windows-fixture
+          path: fixture
+      - name: Read Windows catalog and publish from Mac
+        run: |
+          xcrun swiftc -swift-version 5 -parse-as-library macOS/Sources/Core.swift macOS/Tests/StorageTests.swift -o /tmp/StorageTests
+          /tmp/StorageTests "$PWD/fixture"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: mac-fixture
+          path: fixture
+  windows-roundtrip:
+    needs: mac-compatibility
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          name: mac-fixture
+          path: fixture
+      - name: Read catalog written by Mac
+        shell: powershell
+        run: |
+          $env:PH_FIXTURE_IN = Join-Path $PWD 'fixture'
+          ./build.ps1
