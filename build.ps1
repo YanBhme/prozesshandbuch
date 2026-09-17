@@ -1,7 +1,8 @@
-﻿$ErrorActionPreference = 'Stop'
+$ErrorActionPreference = 'Stop'
 $base = $PSScriptRoot
 $out = Join-Path $base 'dist'
 New-Item -ItemType Directory -Force $out | Out-Null
+Copy-Item (Join-Path $base 'Resources') $out -Recurse -Force
 $csc = Join-Path $env:WINDIR 'Microsoft.NET\Framework64\v4.0.30319\csc.exe'
 if (!(Test-Path $csc)) { throw 'Windows .NET Framework compiler missing' }
 $refs = @('/r:System.dll','/r:System.Core.dll','/r:System.Drawing.dll','/r:System.Windows.Forms.dll','/r:System.Web.Extensions.dll')
@@ -16,6 +17,7 @@ if ($LASTEXITCODE -ne 0) { throw 'Storage tests failed' }
 $package = Join-Path $out 'Paket'
 New-Item -ItemType Directory -Force $package | Out-Null
 Copy-Item "$out\Prozesshandbuch.exe" $package
+Copy-Item (Join-Path $base 'Resources') $package -Recurse -Force
 Copy-Item "$base\LIESMICH.txt" $package
 Copy-Item "$base\Installieren.cmd","$base\Deinstallieren.cmd","$base\Prozesshandbuch.cs","$base\Tests.cs","$base\app.manifest","$base\Logo-Bruno-Gruettner.jpg" $package
 Compress-Archive -Path "$package\*" -DestinationPath "$out\Prozesshandbuch-Windows.zip" -Force

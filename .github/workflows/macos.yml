@@ -20,6 +20,8 @@ jobs:
           test -s macOS/build/Start.png
           macOS/build/Prozesshandbuch.app/Contents/MacOS/Prozesshandbuch --capture-guide --capture "$PWD/macOS/build/Anleitung.png"
           test -s macOS/build/Anleitung.png
+          macOS/build/Prozesshandbuch.app/Contents/MacOS/Prozesshandbuch --capture-tenant --capture "$PWD/macOS/build/Mieterwechsel.png"
+          macOS/build/Prozesshandbuch.app/Contents/MacOS/Prozesshandbuch --capture-templates --capture "$PWD/macOS/build/Vorlagen.png"
       - uses: actions/upload-artifact@v4
         if: always()
         with:
@@ -29,4 +31,6 @@ jobs:
             macOS/build/Prozesshandbuch-Mac.zip
             macOS/build/Start.png
             macOS/build/Anleitung.png
+            macOS/build/Mieterwechsel.png
+            macOS/build/Vorlagen.png
           if-no-files-found: error

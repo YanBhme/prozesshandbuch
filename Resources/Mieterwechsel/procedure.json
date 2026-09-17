@@ -1,0 +1,149 @@
+{
+  "Id": "builtin-mieterwechsel-v1",
+  "Title": "Checkliste Mieterwechsel",
+  "Department": "Miethäuser",
+  "Topic": "Checkliste Mieterwechsel",
+  "Summary": "Neun Abschnitte vom Kündigungseingang bis zum Abschluss der Abrechnung. Die zugehörigen PDFs lassen sich als persönliche Kopie speichern, digital abhaken oder ausdrucken.",
+  "Updated": "17.09.2026",
+  "Steps": [
+    {
+      "Id": "mw-01",
+      "Title": "Kündigung prüfen und bestätigen",
+      "Owner": "",
+      "Instructions": "Bei der regulären Mieterkündigung gilt grundsätzlich: Zugang spätestens am dritten Werktag eines Monats zum Ende des übernächsten Monats. Vertrag und Sonderfälle prüfen. Eine vorzeitige Schlüsselrückgabe oder die Benennung eines Nachmieters beendet den Vertrag nicht automatisch früher.",
+      "Checklist": "Eingangstag und Zugangsweg der Kündigung dokumentieren.\nUnterschriften aller erforderlichen Vertragsparteien bzw. wirksame Vertretung prüfen.\nSchriftform prüfen: Eine normale E-Mail oder ein Scan allein genügt grundsätzlich nicht.\nKündigungsfrist, Kündigungsausschluss, Befristung und Aufhebungsvertrag prüfen.\nVertragsende anhand des tatsächlichen Zugangs berechnen.\nUnklarheiten kurzfristig klären und das Ergebnis dokumentieren.\nKündigungsbestätigung mit geprüftem Beendigungsdatum versenden.\nEigentümer über die Kündigung und das weitere Vorgehen informieren.\nAbweichende Vereinbarungen, etwa eine frühere Beendigung, ausdrücklich dokumentieren.",
+      "Next": "mw-02",
+      "Otherwise": "",
+      "Documents": [
+        {
+          "Name": "Mieterwechsel 01 – Kündigung prüfen und bestätigen.pdf",
+          "File": "mw-v1-01.pdf"
+        },
+        {
+          "Name": "Mieterwechsel – Gesamtcheckliste.pdf",
+          "File": "mw-v1-gesamt.pdf"
+        }
+      ]
+    },
+    {
+      "Id": "mw-02",
+      "Title": "Mieterkonto und Kaution vorprüfen",
+      "Owner": "",
+      "Instructions": "Die Kaution nicht pauschal mit den letzten Mieten verrechnen. Vor Abschluss der Prüfung keine verbindliche Zusage über die vollständige Rückzahlung machen.",
+      "Checklist": "Mieterkonto auf Rückstände, Guthaben und ungeklärte Buchungen prüfen.\nBis zum Vertragsende fällige Zahlungen ermitteln.\nBestehende Mietminderungen und Zahlungsvereinbarungen berücksichtigen.\nHöhe, Anlageform und tatsächlichen Bestand der Kaution prüfen.\nBarkaution, Bürgschaft oder Verpfändung einschließlich zugehöriger Unterlagen zuordnen.\nOffene Betriebs- und Heizkostenabrechnungen erfassen.\nBuchhaltung über das Vertragsende informieren; Ende der Sollstellungen und Lastschriften vormerken.",
+      "Next": "mw-03",
+      "Otherwise": "",
+      "Documents": [
+        {
+          "Name": "Mieterwechsel 02 – Mieterkonto und Kaution vorprüfen.pdf",
+          "File": "mw-v1-02.pdf"
+        }
+      ]
+    },
+    {
+      "Id": "mw-03",
+      "Title": "Vorbesichtigung durchführen",
+      "Owner": "",
+      "Instructions": "Normale Abnutzung, mögliche Mieterschäden und Instandhaltung des Eigentümers unterscheiden. Keine pauschale Renovierung verlangen: Vertragsklauseln, Einzugszustand und tatsächlichen Zustand prüfen.",
+      "Checklist": "Besichtigungstermin mit dem Mieter abstimmen.\nEinzugsprotokoll sowie Unterlagen zu bekannten Mängeln und Einbauten mitnehmen.\nWohnung, Keller, Balkon, Abstellräume und Stellplatz besichtigen.\nWände, Decken, Böden, Türen und Fenster prüfen.\nSanitäranlagen, Armaturen, sichtbare Leitungen und mitvermietete Küchengeräte prüfen.\nFeuchtigkeit, Schimmel, Undichtigkeiten oder Schädlingsbefall dokumentieren.\nVorhandensein der Rauchwarnmelder sowie erforderliche Wartung und Prüfung klären.\nEigentum an Einbauten und Gegenständen zuordnen: Mieter, Eigentümer oder Dritte.\nRückbau, Übernahme oder Verbleib von Einbauten und Gegenständen klären.\nVereinbarte Arbeiten, Zuständigkeiten und Zieltermine schriftlich festhalten.",
+      "Next": "mw-04",
+      "Otherwise": "",
+      "Documents": [
+        {
+          "Name": "Mieterwechsel 03 – Vorbesichtigung durchführen.pdf",
+          "File": "mw-v1-03.pdf"
+        }
+      ]
+    },
+    {
+      "Id": "mw-04",
+      "Title": "Wiedervermietung und Arbeiten mit dem Eigentümer abstimmen",
+      "Owner": "",
+      "Instructions": "Eine Freigabe des Eigentümers ersetzt die Prüfung der rechtlich zulässigen Miethöhe nicht. Vor Zusagen an neue Mieter müssen Termine und Konditionen belastbar sein.",
+      "Checklist": "Entscheiden, ob eine direkte Wiedervermietung oder zunächst Instandsetzung erfolgen soll.\nNotwendige Maßnahmen, Kostenrahmen und Zeitplan mit dem Eigentümer abstimmen.\nAngebote einholen und erforderliche Auftragsfreigaben dokumentieren.\nBei Umbauten notwendige Genehmigungen und Zustimmungen prüfen.\nRealistischen Termin für die Bezugsfertigkeit festlegen.\nNettokaltmiete und angemessene Betriebskostenvorauszahlungen abstimmen.\nZulässige Miethöhe, Mietpreisbremse, Ausnahmen und mögliche Bindungen prüfen.\nErforderliche Auskünfte zu Ausnahmen vor der Vertragserklärung des neuen Mieters erteilen.\nNormale Miete, Staffelmiete oder Indexmiete festlegen und vertraglich korrekt abbilden.\nMietbeginn mit dem Arbeits- und Fertigstellungsplan abstimmen.",
+      "Next": "mw-05",
+      "Otherwise": "",
+      "Documents": [
+        {
+          "Name": "Mieterwechsel 04 – Wiedervermietung und Arbeiten mit dem Eigentümer abstimmen.pdf",
+          "File": "mw-v1-04.pdf"
+        }
+      ]
+    },
+    {
+      "Id": "mw-05",
+      "Title": "Rücknahme der bisherigen Wohnung vorbereiten",
+      "Owner": "",
+      "Instructions": "Rückgabetermin und vertragliches Mietende können voneinander abweichen. Beide Daten getrennt festhalten; die tatsächliche Besitzrückgabe anschließend im Rücknahmeprotokoll dokumentieren.",
+      "Checklist": "Verbindlichen Termin für die Wohnungsrückgabe vereinbaren.\nMieter über den vereinbarten Rückgabezustand und die Rückgabe aller Schlüssel informieren.\nBei Vertretung eine ausreichende Vollmacht sicherstellen.\nEinzugsprotokoll, Schlüsselverzeichnis und Unterlagen der Vorbesichtigung bereitlegen.\nZugang zu allen relevanten Zählern sicherstellen.\nErforderliche Zwischenablesung mit dem Messdienst organisieren.\nNeue Zustelladresse und aktuelle Kontaktdaten des bisherigen Mieters erfassen.\nBankverbindung für Guthaben und Kautionsrückzahlung bestätigen lassen.\nBei Leerstand Versorgung, Strom und Frostschutz organisatorisch sicherstellen.",
+      "Next": "mw-06",
+      "Otherwise": "",
+      "Documents": [
+        {
+          "Name": "Mieterwechsel 05 – Rücknahme der bisherigen Wohnung vorbereiten.pdf",
+          "File": "mw-v1-05.pdf"
+        }
+      ]
+    },
+    {
+      "Id": "mw-06",
+      "Title": "Wohnung zurücknehmen und Zustand dokumentieren",
+      "Owner": "",
+      "Instructions": "Bei Restpunkten keine pauschalen Erklärungen wie „mängelfrei“ oder „alle Ansprüche erledigt“ aufnehmen. Festgestellten Zustand, unterschiedliche Auffassungen und konkrete Vereinbarungen getrennt dokumentieren.",
+      "Checklist": "Datum, Uhrzeit und teilnehmende Personen im Protokoll festhalten.\nWohnung und sämtliche mitvermieteten Nebenräume vollständig besichtigen.\nRäumung und Reinigungszustand prüfen.\nJeden Raum prüfen und konkrete Feststellungen protokollieren.\nÜbersichts- und Detailfotos anfertigen; Schäden eindeutig dem Raum und der Stelle zuordnen.\nFeststellungen mit Einzugsprotokoll und Vorbesichtigung abgleichen.\nPrüfen, ob vereinbarte Arbeiten erledigt wurden.\nMöbel, Einbauten und zurückgelassene Gegenstände dokumentieren.\nZählernummern und -stände für Strom, Gas, Wasser und Wärme ablesen und fotografieren.\nSchlüssel und Transponder nach Art und Anzahl erfassen: Wohnung, Haus, Briefkasten, Keller, Garage.\nFehlende oder nachgefertigte Schlüssel ausdrücklich dokumentieren.\nTatsächliche Rückgabe und Besitzübernahme eindeutig festhalten.\nProtokoll unterschreiben lassen und beiden Seiten eine Ausfertigung geben.\nEine Unterschriftsverweigerung dokumentieren; Feststellungen mit Zeugen und Fotos sichern.",
+      "Next": "mw-07",
+      "Otherwise": "",
+      "Documents": [
+        {
+          "Name": "Mieterwechsel 06 – Wohnung zurücknehmen und Zustand dokumentieren.pdf",
+          "File": "mw-v1-06.pdf"
+        }
+      ]
+    },
+    {
+      "Id": "mw-07",
+      "Title": "Neuen Mietvertrag abschließen und Stammdaten anlegen",
+      "Owner": "",
+      "Instructions": "Bei Wohnraum beträgt die Kaution höchstens drei Nettokaltmieten. Bei einer Geldkaution besteht grundsätzlich das Recht auf drei gleiche monatliche Teilzahlungen; die erste ist zu Mietbeginn fällig. Nicht pauschal die gesamte Geldkaution vor Einzug verlangen.",
+      "Checklist": "Namen und Anschriften aller Vertragsparteien korrekt aufnehmen.\nMietgegenstand, Keller, Stellplatz und mitvermietete Ausstattung eindeutig beschreiben.\nMietbeginn, Miete, Vorauszahlungen und Zahlungsdaten festlegen.\nKaution und zulässige Zahlungsmodalitäten vereinbaren.\nZusagen zu Arbeiten, Ausstattung oder vorzeitigem Zugang schriftlich festhalten.\nHausordnung und erforderliche Vertragsanlagen beifügen.\nVollständige Unterschriften und wirksamen Vertragsabschluss sicherstellen.\nNeues Mieterkonto anlegen und Beginn der Sollstellungen erfassen.\nKontaktdaten und gegebenenfalls SEPA-Mandat aufnehmen.\nKautionszahlungen überwachen und eine getrennte Anlage sicherstellen.",
+      "Next": "mw-08",
+      "Otherwise": "",
+      "Documents": [
+        {
+          "Name": "Mieterwechsel 07 – Neuen Mietvertrag abschließen und Stammdaten anlegen.pdf",
+          "File": "mw-v1-07.pdf"
+        }
+      ]
+    },
+    {
+      "Id": "mw-08",
+      "Title": "Wohnung an den neuen Mieter übergeben",
+      "Owner": "",
+      "Instructions": "Den tatsächlichen Einzug in der Wohnungsgeberbestätigung richtig angeben. Noch offene Arbeiten im Übergabeprotokoll konkret benennen; keine Erledigung bestätigen, bevor sie geprüft wurde.",
+      "Checklist": "Fertigstellung und Abnahme vereinbarter Arbeiten prüfen.\nAbschlussbesichtigung vor der Übergabe durchführen.\nIdentität bzw. wirksame Vertretung der übernehmenden Person prüfen.\nZustand raumweise im Übergabeprotokoll und mit Fotos dokumentieren.\nVerbleibende Mängel mit Zuständigkeit und Erledigungstermin festhalten.\nZählernummern und Zählerstände aufnehmen.\nSchlüssel und Transponder nach Art und Anzahl übergeben und quittieren lassen.\nKeller, Stellplatz, Müllplatz und Gemeinschaftsflächen zeigen.\nHeizung, Absperreinrichtungen und mitvermietete Geräte erklären.\nKontakte für Reparaturen und Notfälle mitteilen.\nZuständigkeiten und Termine für eigene Versorgungsverträge sowie An- und Abmeldungen klären.\nWohnungsgeberbestätigung zum tatsächlichen Einzug ausstellen bzw. veranlassen.\nÜbergabeprotokoll unterschreiben lassen und eine Ausfertigung aushändigen.\nKlingel- und Briefkastenschilder aktualisieren lassen.\nHauswart und betroffene Dienstleister über den Mieterwechsel informieren.",
+      "Next": "mw-09",
+      "Otherwise": "",
+      "Documents": [
+        {
+          "Name": "Mieterwechsel 08 – Wohnung an den neuen Mieter übergeben.pdf",
+          "File": "mw-v1-08.pdf"
+        }
+      ]
+    },
+    {
+      "Id": "mw-09",
+      "Title": "Buchhaltung, Kaution und Abrechnung abschließen",
+      "Owner": "",
+      "Instructions": "Eine jährliche Betriebskostenabrechnung wird nicht allein durch den Auszug sofort fällig. Grundsätzlich gilt eine Abrechnungsfrist von zwölf Monaten nach Ende des Abrechnungszeitraums. „Wohnungswechsel abgeschlossen“ und „altes Mietverhältnis vollständig abgerechnet“ als getrennte Bearbeitungsstände behandeln.",
+      "Checklist": "Ende des alten und Beginn des neuen Mietverhältnisses korrekt buchen.\nLeerstandszeiten gesondert erfassen.\nAlte Sollstellungen und Lastschriften zum richtigen Zeitpunkt beenden.\nEingang der ersten neuen Miete und der fälligen Kautionsraten prüfen.\nNutzerwechsel, Ablesewerte und Nutzungszeiträume an den Messdienst übermitteln.\nBetriebskosten den bisherigen und neuen Mietern sowie dem Leerstand richtig zuordnen.\nOffene Mietforderungen, Guthaben und berechtigte Schadensforderungen abschließend prüfen.\nKaution einschließlich Zinsen abrechnen.\nErforderliche Einbehalte konkret begründen und beziffern.\nFreizugebende Beträge auszahlen; für verbleibende Beträge eine Wiedervorlage setzen.\nSpätere Betriebs- und Heizkostenabrechnungen an die neue Zustelladresse versenden.\nEigentümer über den Abschluss informieren und die Akte vervollständigen.",
+      "Next": "",
+      "Otherwise": "",
+      "Documents": [
+        {
+          "Name": "Mieterwechsel 09 – Buchhaltung, Kaution und Abrechnung abschließen.pdf",
+          "File": "mw-v1-09.pdf"
+        }
+      ]
+    }
+  ]
+}

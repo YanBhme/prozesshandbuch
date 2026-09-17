@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.IO;
 using System.Linq;
 using Prozesshandbuch;
@@ -10,7 +10,16 @@ public static class StorageTests {
   try{
    var c=Storage.New();Storage.Save(root,c,null);Check(Storage.Read(root).EditorSid==Storage.Sid(),"Erstellerkonto bleibt erhalten");
    Check(c.Categories.Count==3&&c.Categories.SelectMany(x=>x.Subcategories).Count()==12,"3 Kategorien und 12 Unterkategorien vorhanden");
-   Check(Structure.Entries(c).Count()==12&&Structure.Entries(c).All(x=>x.Steps.Count==0)&&c.Processes.Count==0,"Leere Struktur ohne erfundene Abläufe oder Schreibzugriff");
+   Check(Structure.Entries(c).Count()==12&&Structure.Entries(c).Count(x=>x.Steps.Count==9)==1&&c.Processes.Count==0,"Mitgelieferte Checkliste ohne Änderung gemeinsamer Daten");
+   var builtin=Builtins.ProcedureFor("Miethäuser","Checkliste Mieterwechsel");
+   Check(builtin.Steps.Count==9&&builtin.Steps.Sum(x=>x.Checklist.Split('\n').Length)==96,"Neun freigegebene Abschnitte und 96 Prüfpunkte");
+   Check(Builtins.Available(c).Count==10&&c.Templates.Count==0,"Zehn Vorlagen ohne Katalogmutation");
+   var custom=Storage.Clone(c);var overrideP=Storage.Clone(builtin);overrideP.Steps.Clear();custom.Processes.Add(overrideP);
+   Check(Structure.Entries(custom).Single(x=>x.Topic=="Checkliste Mieterwechsel").Steps.Count==0,"Eigene Anleitung hat Vorrang");
+   string copy=Path.Combine(Path.GetTempPath(),Guid.NewGuid().ToString("N")+".pdf");
+   var template=Builtins.Templates()[0];byte[] original=File.ReadAllBytes(Builtins.Document(null,template));
+   try{Builtins.Copy(null,template,copy);Check(File.ReadAllBytes(copy).SequenceEqual(original),"Offline-Download vollständig");File.WriteAllText(copy,"Persönliche Häkchen");Check(File.ReadAllBytes(Builtins.Document(null,template)).SequenceEqual(original),"Leere Vorlage unverändert");}finally{if(File.Exists(copy))File.Delete(copy);}
+   Reject(delegate{Builtins.Copy(null,template,Builtins.Document(null,template));},"Mitgelieferte Vorlage nicht überschreiben");
    var legacy=Storage.Json().Deserialize<Catalog>("{\"Schema\":1,\"Revision\":\"legacy\",\"EditorSid\":\"S-1-0-0\",\"Processes\":[]}");
    Check(legacy.Categories.Count==3,"Bestehendes Datenformat ergänzt Kategorien");
    var sample=Storage.Clone(c);var first=Structure.Entries(sample).First();sample.Processes.Add(first);

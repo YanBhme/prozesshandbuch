@@ -79,7 +79,7 @@ struct Catalog: Codable, Equatable {
                 let matches = Processes.filter { $0.Department == category.Name && ($0.Topic == topic || $0.Title == topic) }
                 if matches.isEmpty {
                     var p = Procedure(); p.Id = "section-\(ci)-\(si)"; p.Title = topic; p.Department = category.Name; p.Topic = topic
-                    result.append(p)
+                    result.append(Builtins.procedure(category.Name, topic) ?? p)
                 } else {
                     for p in matches where seen.insert(p.Id).inserted { result.append(p) }
                 }
@@ -87,6 +87,27 @@ struct Catalog: Codable, Equatable {
         }
         result += Processes.filter { seen.insert($0.Id).inserted }
         return result
+    }
+}
+
+enum Builtins {
+    static var directoryOverride: URL? = nil
+    static var directory: URL { directoryOverride ?? Bundle.main.resourceURL!.appendingPathComponent("Mieterwechsel") }
+    static var templates: [Attachment] {
+        guard let data = try? Data(contentsOf: directory.appendingPathComponent("templates.json")),
+              let files = try? JSONDecoder().decode([Attachment].self, from: data) else { return [] }
+        return files.filter { (try? Storage.validateAttachment($0)) != nil }
+    }
+    static func contains(_ file: String) -> Bool { templates.contains { $0.File == file } }
+    static func procedure(_ department: String, _ topic: String) -> Procedure? {
+        guard department == "Miethäuser", topic == "Checkliste Mieterwechsel",
+              let data = try? Data(contentsOf: directory.appendingPathComponent("procedure.json")),
+              let p = try? JSONDecoder().decode(Procedure.self, from: data) else { return nil }
+        return p
+    }
+    static func templates(for catalog: Catalog) -> [Attachment] {
+        var seen = Set<String>()
+        return (templates + catalog.Templates).filter { seen.insert($0.File).inserted }
     }
 }
 
@@ -132,6 +153,11 @@ enum Storage {
     }
     static func document(_ root: URL, _ a: Attachment) throws -> URL {
         try validateAttachment(a)
+        if Builtins.contains(a.File) {
+            let file = Builtins.directory.appendingPathComponent(a.File)
+            guard try file.resourceValues(forKeys: [.isRegularFileKey]).isRegularFile == true else { throw HandbookError("Mitgelieferte Vorlage fehlt. Bitte die App erneut installieren.") }
+            return file
+        }
         let dir = root.appendingPathComponent("Dokumente").resolvingSymlinksInPath().standardizedFileURL
         let source = dir.appendingPathComponent(a.File).resolvingSymlinksInPath().standardizedFileURL
         guard source.deletingLastPathComponent() == dir,
@@ -190,7 +216,8 @@ enum Storage {
         let source = try document(root, a)
         let resolved = destination.resolvingSymlinksInPath().standardizedFileURL
         let shared = root.resolvingSymlinksInPath().standardizedFileURL.path + "/"
-        guard !resolved.path.hasPrefix(shared) else { throw HandbookError("Bitte außerhalb des gemeinsamen Prozessordners speichern.") }
+        let bundled = Builtins.directory.resolvingSymlinksInPath().standardizedFileURL.path + "/"
+        guard !resolved.path.hasPrefix(shared), !resolved.path.hasPrefix(bundled) else { throw HandbookError("Bitte außerhalb des gemeinsamen Prozessordners speichern.") }
         let temp = destination.deletingLastPathComponent().appendingPathComponent(".kopie-\(UUID().uuidString).tmp")
         defer { try? fm.removeItem(at: temp) }
         try fm.copyItem(at: source, to: temp)

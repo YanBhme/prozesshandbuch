@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Drawing.Drawing2D;
@@ -28,6 +28,36 @@ public class Procedure {
 public class Category {
  public string Name {get;set;} public string Description {get;set;} public List<string> Subcategories {get;set;}
 }
+public static class Builtins {
+ public static string DirectoryPath {get{return Path.Combine(AppDomain.CurrentDomain.BaseDirectory,"Resources","Mieterwechsel");}}
+ public static List<Attachment> Templates(){
+  string file=Path.Combine(DirectoryPath,"templates.json");
+  if(!File.Exists(file))return new List<Attachment>();
+  return Storage.Json().Deserialize<List<Attachment>>(File.ReadAllText(file,Encoding.UTF8));
+ }
+ public static bool Contains(string file){return Templates().Any(a=>a.File==file);}
+ public static List<Attachment> Available(Catalog c){return Templates().Concat(c.Templates??new List<Attachment>()).GroupBy(a=>a.File).Select(g=>g.First()).ToList();}
+ public static Procedure ProcedureFor(string department,string topic){
+  if(department!="Miethäuser"||topic!="Checkliste Mieterwechsel")return null;
+  string file=Path.Combine(DirectoryPath,"procedure.json");
+  return File.Exists(file)?Storage.Json().Deserialize<Procedure>(File.ReadAllText(file,Encoding.UTF8)):null;
+ }
+ public static string Document(string root,Attachment a){
+  if(a==null||String.IsNullOrWhiteSpace(a.File)||Path.GetFileName(a.File)!=a.File||a.File.IndexOfAny(Path.GetInvalidFileNameChars())>=0)throw new Exception("Ungültiger Dokumentverweis.");
+  string source=Contains(a.File)?Path.Combine(DirectoryPath,a.File):String.IsNullOrWhiteSpace(root)?null:Path.Combine(root,"Dokumente",a.File);
+  if(source==null||!File.Exists(source))throw new Exception("Dokument nicht erreichbar. Bitte Verbindung bzw. App-Installation prüfen.");
+  return source;
+ }
+ public static void Copy(string root,Attachment a,string destination){
+  string source=Document(root,a);destination=Path.GetFullPath(destination);
+  foreach(string protectedRoot in new[]{root,DirectoryPath}){
+   if(!String.IsNullOrWhiteSpace(protectedRoot)&&destination.StartsWith(Path.GetFullPath(protectedRoot).TrimEnd(Path.DirectorySeparatorChar)+Path.DirectorySeparatorChar,StringComparison.OrdinalIgnoreCase))throw new Exception("Bitte außerhalb des Prozess- und Vorlagenordners speichern.");
+  }
+  string temp=Path.Combine(Path.GetDirectoryName(destination),".prozesshandbuch-"+Guid.NewGuid().ToString("N")+".tmp");
+  try{File.Copy(source,temp,false);if(File.Exists(destination))File.Replace(temp,destination,null);else File.Move(temp,destination);}
+  finally{if(File.Exists(temp))File.Delete(temp);}
+ }
+}
 public static class Structure {
  public static List<Category> Defaults(){return new List<Category>{
   new Category{Name="WEG-Verwaltung",Description="Wohnungseigentümergemeinschaften",Subcategories=new List<string>{
@@ -51,7 +81,7 @@ public static class Structure {
   foreach(var category in c.Categories){int subIndex=0;
    foreach(var sub in category.Subcategories){
     var existing=c.Processes.Where(p=>p.Department==category.Name&&(p.Topic==sub||p.Title==sub)).ToList();
-    if(existing.Count==0)yield return new Procedure{Id="section-"+categoryIndex+"-"+subIndex,Title=sub,Department=category.Name,Topic=sub};
+    if(existing.Count==0)yield return Builtins.ProcedureFor(category.Name,sub)??new Procedure{Id="section-"+categoryIndex+"-"+subIndex,Title=sub,Department=category.Name,Topic=sub};
     else foreach(var p in existing){if(seen.Add(p.Id))yield return p;}
     subIndex++;
    }categoryIndex++;
@@ -250,7 +280,7 @@ public class MainForm:Form {
  Procedure Selected {get{return list.SelectedItem as Procedure;}}
  bool CanEdit {get{return online&&catalog!=null&&catalog.EditorSid==Storage.Sid();}}
  public MainForm(){
-  Text="Bruno Grüttner | Prozesshandbuch 0.6.1";Font=new Font("Segoe UI",12);BackColor=UI.Pale;ForeColor=UI.Ink;
+  Text="Bruno Grüttner | Prozesshandbuch 0.7.0";Font=new Font("Segoe UI",12);BackColor=UI.Pale;ForeColor=UI.Ink;
   Size=new Size(1380,920);MinimumSize=new Size(1120,740);StartPosition=FormStartPosition.CenterScreen;AutoScaleDimensions=new SizeF(96,96);AutoScaleMode=AutoScaleMode.Dpi;
   var shell=new TableLayoutPanel{Dock=DockStyle.Fill,ColumnCount=2,RowCount=1,Margin=Padding.Empty,Padding=Padding.Empty};
   shell.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute,330));shell.ColumnStyles.Add(new ColumnStyle(SizeType.Percent,100));
@@ -355,11 +385,11 @@ public class MainForm:Form {
   uploadTemplate.Visible=CanEdit;
   string selected=templateList.SelectedItems.Count>0?((Attachment)templateList.SelectedItems[0].Tag).File:null;
   templateList.BeginUpdate();templateList.Items.Clear();
-  foreach(var a in (catalog.Templates??new List<Attachment>()).Where(x=>x.Name.IndexOf(templateSearch.Text.Trim(),StringComparison.CurrentCultureIgnoreCase)>=0)){
+  foreach(var a in Builtins.Available(catalog).Where(x=>x.Name.IndexOf(templateSearch.Text.Trim(),StringComparison.CurrentCultureIgnoreCase)>=0)){
    var item=new ListViewItem(a.Name);item.SubItems.Add(Path.GetExtension(a.File).TrimStart('.').ToUpperInvariant());item.Tag=a;templateList.Items.Add(item);if(a.File==selected)item.Selected=true;
   }
   templateList.EndUpdate();
-  templateStatus.Text=!online?(String.IsNullOrWhiteSpace(root)?"Über Einstellungen den gemeinsamen Datenordner verbinden, um Vorlagen zu laden.":"Verbindung unterbrochen. Angezeigter Stand möglicherweise veraltet."):
+  templateStatus.Text=!online?(String.IsNullOrWhiteSpace(root)?"Mitgelieferte Checklisten sind ohne Datenordner verfügbar. Über „Kopie speichern“ herunterladen.":"Mitgelieferte Checklisten verfügbar. Für weitere Dokumente die Verbindung prüfen."):
    templateList.Items.Count==0?(CanEdit?"Noch keine passenden Vorlagen. Über „Vorlage hochladen“ eine Datei bereitstellen.":"Noch keine passenden Vorlagen verfügbar."):templateList.Items.Count+" Vorlagen · Über „Kopie speichern“ lokal herunterladen.";
  }
  void OpenSelectedTemplate(){if(templateList.SelectedItems.Count>0)OpenDocumentFile((Attachment)templateList.SelectedItems[0].Tag);}
@@ -382,14 +412,9 @@ public class MainForm:Form {
  }
  void SaveCopy(Attachment a){
   try{
-   string source=Path.Combine(root,"Dokumente",a.File);if(!File.Exists(source))throw new Exception("Datei nicht erreichbar. Bitte die Verbindung zum Datenordner prüfen.");
-   using(var d=new SaveFileDialog{Title="Kopie speichern",FileName=Path.GetFileName(a.Name),DefaultExt=Path.GetExtension(a.File).TrimStart('.'),AddExtension=true,OverwritePrompt=true,Filter="Originaldatei|*"+Path.GetExtension(a.File)}){
+   using(var d=new SaveFileDialog{Title="Persönliche Kopie speichern",FileName=Path.GetFileName(a.Name),DefaultExt=Path.GetExtension(a.File).TrimStart('.'),AddExtension=true,OverwritePrompt=true,Filter="Originaldatei|*"+Path.GetExtension(a.File)}){
     if(d.ShowDialog(this)!=DialogResult.OK)return;
-    string destination=Path.GetFullPath(d.FileName);string shared=Path.GetFullPath(root).TrimEnd(Path.DirectorySeparatorChar)+Path.DirectorySeparatorChar;
-    if(destination.StartsWith(shared,StringComparison.OrdinalIgnoreCase))throw new Exception("Bitte einen Speicherort außerhalb des gemeinsamen Prozessordners wählen.");
-    string temporary=Path.Combine(Path.GetDirectoryName(destination),".prozesshandbuch-"+Guid.NewGuid().ToString("N")+".tmp");
-    try{File.Copy(source,temporary,false);if(File.Exists(destination))File.Replace(temporary,destination,null);else File.Move(temporary,destination);}
-    finally{if(File.Exists(temporary))File.Delete(temporary);}
+    Builtins.Copy(root,a,d.FileName);
    }
   }catch(Exception e){UI.Error(e);}
  }
@@ -416,7 +441,7 @@ public class MainForm:Form {
    var sid=new TextBox{Text=Storage.Sid(),ReadOnly=true,Dock=DockStyle.Fill};layout.Controls.Add(sid,0,1);
    layout.Controls.Add(UI.Label("Deine Mac-Kennung (aus den Einstellungen der Mac-App)"),0,2);
    var mac=new TextBox{Text=catalog.EditorMacId??"",ReadOnly=!CanEdit,Dock=DockStyle.Fill};layout.Controls.Add(mac,0,3);
-   layout.Controls.Add(new Label{Text=CanEdit?"Du kannst dein eigenes Mac-Konto zusätzlich freigeben. Nach dem Speichern benötigen alle Windows-Nutzer Version 0.6.1 oder neuer. Die tatsächlichen Lese- und Änderungsrechte setzt eure IT am Datenordner.":"Für ein am Mac angelegtes Handbuch: Übertrage deine Windows-Kennung in den Einstellungen der Mac-App. Nur der bereits freigegebene Bearbeiter darf Konten freigeben.",Dock=DockStyle.Fill,Padding=new Padding(0,12,0,0)},0,4);
+   layout.Controls.Add(new Label{Text=CanEdit?"Du kannst dein eigenes Mac-Konto zusätzlich freigeben. Nach dem Speichern benötigen alle Windows-Nutzer Version 0.7.0 oder neuer. Die tatsächlichen Lese- und Änderungsrechte setzt eure IT am Datenordner.":"Für ein am Mac angelegtes Handbuch: Übertrage deine Windows-Kennung in den Einstellungen der Mac-App. Nur der bereits freigegebene Bearbeiter darf Konten freigeben.",Dock=DockStyle.Fill,Padding=new Padding(0,12,0,0)},0,4);
    var save=UI.Button("Mac-Freigabe speichern",delegate{
     if(!CanEdit)return;string id=mac.Text.Trim();if(id!=""&&!System.Text.RegularExpressions.Regex.IsMatch(id,@"^mac:[A-Za-z0-9.:-]+$")){UI.Error(new Exception("Bitte die vollständige Mac-Kennung übernehmen."));return;}
     try{var next=Storage.Clone(catalog);next.EditorMacId=id;Storage.Save(root,next,catalog.Revision);dataGeneration++;catalog=next;UpdateButtons();SetStatus();f.Close();}catch(Exception e){UI.Error(e);}
@@ -499,8 +524,14 @@ public class MainForm:Form {
  void Append(string text,bool bold){instructions.SelectionStart=instructions.TextLength;instructions.SelectionColor=bold?UI.Ink:UI.Muted;using(var f=new Font("Segoe UI",bold?14:12,bold?FontStyle.Bold:FontStyle.Regular)){instructions.SelectionFont=f;instructions.AppendText(text);}}
  void OpenDocument(){if(docs.SelectedItems.Count>0)OpenDocumentFile((Attachment)docs.SelectedItems[0].Tag);}
  void OpenDocumentFile(Attachment a){
-  try{string file=Path.Combine(root,"Dokumente",a.File);if(!File.Exists(file))throw new Exception("Dokument nicht erreichbar. Bitte das Netzlaufwerk prüfen.");if(!EditorForm.Allowed.Contains(Path.GetExtension(file).ToLowerInvariant()))throw new Exception("Dieser Dateityp wird nicht direkt geöffnet.");System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo(file){UseShellExecute=true});}catch(Exception e){UI.Error(e);}
+  try{
+   if(!EditorForm.Allowed.Contains(Path.GetExtension(a.File).ToLowerInvariant()))throw new Exception("Dieser Dateityp wird nicht direkt geöffnet.");
+   string folder=Path.Combine(Path.GetTempPath(),"Prozesshandbuch-"+Guid.NewGuid().ToString("N"));Directory.CreateDirectory(folder);
+   string file=Path.Combine(folder,Path.GetFileName(a.Name));Builtins.Copy(root,a,file);
+   System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo(file){UseShellExecute=true});
+  }catch(Exception e){UI.Error(e);}
  }
+
  void EditProcess(bool fresh){if(!CanEdit||(!fresh&&Selected==null))return;timer.Stop();try{using(var e=new EditorForm(root,Storage.Clone(catalog),fresh?new Procedure{Department=departments.SelectedItem as string=="Alle Kategorien"?"":departments.SelectedItem as string}:Storage.Clone(Selected),fresh||!catalog.Processes.Any(p=>p.Id==Selected.Id))){if(e.ShowDialog(this)==DialogResult.OK){dataGeneration++;RefreshCatalog(false);}}}finally{timer.Start();}}
  void DeleteProcess(){if(!CanEdit||Selected==null)return;if(!UI.Confirm("Prozess „"+Selected.Title+"“ löschen? Der bisherige Stand bleibt im Sicherungsordner erhalten."))return;try{var next=Storage.Clone(catalog);next.Processes.RemoveAll(p=>p.Id==Selected.Id);Storage.Save(root,next,catalog.Revision);dataGeneration++;RefreshCatalog(false);}catch(Exception e){UI.Error(e);}}
  void ShowHelp(){MessageBox.Show("Hauptmenü: „Anleitung“ zeigt Arbeitsabläufe, „Vorlagen“ zeigt gemeinsame Dokumente. Über „Hauptmenü“ kommst du zurück.\n\nVorlagen hochladen: unter deinem Bearbeiterkonto „Vorlagen“ > „Vorlage hochladen“. Mitarbeiter nutzen „Kopie speichern“, um eine lokale Kopie zu erhalten.\n\nDer Datenordner wird einmalig über Einstellungen verbunden. Beim Start erscheint keine Ordnerabfrage. Alle Mitarbeiter wählen denselben gemeinsamen Ordner. Unterschiedliche Laufwerksbuchstaben sind möglich; empfohlen ist ein UNC-Pfad wie \\\\Server\\Freigabe\\Prozesshandbuch.\n\nNur das beim Anlegen hinterlegte Windows-Konto erhält die Bearbeitungsansicht. Die tatsächliche Absicherung erfolgt über Freigabe- und NTFS-Rechte: Bearbeiter = Ändern; Mitarbeiter = Lesen.\n\nÄnderungen erscheinen spätestens nach 30 Sekunden. Bei fehlendem Netzlaufwerk wird der letzte angezeigte Stand als veraltet markiert.\n\nChecklisten sind Lesetext. Es werden keine Bearbeitungsstände der Mitarbeiter gespeichert. Die Suche erfasst Anweisungen und Dokumentnamen, nicht den Inhalt angehängter Dateien.\n\nVollständige Einrichtung und Wiederherstellung: LIESMICH.txt im Installationspaket.","Hilfe",MessageBoxButtons.OK,MessageBoxIcon.Information);}
@@ -567,7 +598,7 @@ public class EditorForm:Form {
   Flush();procedure.Title=title.Text.Trim();procedure.Department=department.Text.Trim();procedure.Topic=topic.Text.Trim();procedure.Summary=summary.Text.Trim();procedure.Updated=DateTime.Now.ToString("dd.MM.yyyy HH:mm");var next=Storage.Clone(catalog);if(fresh)next.Processes.Add(procedure);else{int i=next.Processes.FindIndex(p=>p.Id==procedure.Id);next.Processes[i]=procedure;}
   var copied=new List<string>();bool saved=false;
   try{Storage.Validate(next);if(Storage.Read(root).Revision!=catalog.Revision)throw new Exception("Der Stand wurde geändert. Bitte den Editor schließen und aktualisieren.");
-   foreach(var a in procedure.Steps.SelectMany(s=>s.Documents)){if(pending.ContainsKey(a.File)){Directory.CreateDirectory(Path.Combine(root,"Dokumente"));string dest=Path.Combine(root,"Dokumente",a.File);File.Copy(pending[a.File],dest,false);copied.Add(dest);}else if(!File.Exists(Path.Combine(root,"Dokumente",a.File)))throw new Exception("Dokument nicht gefunden: "+a.Name);}
+   foreach(var a in procedure.Steps.SelectMany(s=>s.Documents)){if(pending.ContainsKey(a.File)){Directory.CreateDirectory(Path.Combine(root,"Dokumente"));string dest=Path.Combine(root,"Dokumente",a.File);File.Copy(pending[a.File],dest,false);copied.Add(dest);}else Builtins.Document(root,a);}
    Storage.Save(root,next,catalog.Revision);saved=true;dirty=false;DialogResult=DialogResult.OK;Close();
   }catch(Exception e){UI.Error(new Exception("Nicht veröffentlicht.\n\n"+e.Message));}finally{if(!saved)foreach(var file in copied){try{File.Delete(file);}catch{}}}
  }

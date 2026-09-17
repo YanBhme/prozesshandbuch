@@ -3,6 +3,9 @@ import Darwin
 
 @main struct StorageTests {
     static func main() throws {
+        let cwd = URL(fileURLWithPath: FileManager.default.currentDirectoryPath)
+        let candidates = [cwd.appendingPathComponent("Resources/Mieterwechsel"), cwd.appendingPathComponent("../Resources/Mieterwechsel")]
+        Builtins.directoryOverride = candidates.first { FileManager.default.fileExists(atPath: $0.appendingPathComponent("templates.json").path) }
         var checks = 0
         func check(_ value: Bool, _ name: String) throws {
             guard value else { throw HandbookError("Test fehlgeschlagen: \(name)") }
@@ -22,6 +25,18 @@ import Darwin
         c = try Storage.save(root, catalog: c, expected: nil, identity: identity)
         try check(c.Categories.count == 3 && c.entries.count == 12 && c.Processes.isEmpty, "Alle Kategorien ohne erfundene Prozesse")
         try check(try Storage.read(root) == c, "JSON-Roundtrip")
+        let builtin = Builtins.procedure("Miethäuser", "Checkliste Mieterwechsel")!
+        try check(builtin.Steps.count == 9 && builtin.Steps.reduce(0) { $0 + $1.Checklist.components(separatedBy: "\n").count } == 96, "Neun Abschnitte und 96 Prüfpunkte")
+        try check(Builtins.templates(for: c).count == 10 && c.Templates.isEmpty, "Vorlagen ohne Mutation")
+        var custom = c; var replacement = builtin; replacement.Steps = []; custom.Processes.append(replacement)
+        try check(custom.entries.first { $0.Topic == "Checkliste Mieterwechsel" }!.Steps.isEmpty, "Eigene Anleitung hat Vorrang")
+        let a = Builtins.templates[0]; let master = try Data(contentsOf: Storage.document(root, a))
+        try Storage.copyDocument(Builtins.directory, a, to: local)
+        try check(try Data(contentsOf: local) == master, "Offline-Kopie vollständig")
+        try Data("persönliche Häkchen".utf8).write(to: local)
+        try check(try Data(contentsOf: Storage.document(root, a)) == master, "Leere Vorlage unverändert")
+        try reject("Mitgelieferte Vorlage geschützt") { try Storage.copyDocument(root, a, to: Storage.document(root, a)) }
+        try FileManager.default.removeItem(at: local)
         try reject("Fremdes Konto darf nicht schreiben") { _ = try Storage.save(root, catalog: c, expected: c.Revision, identity: "mac:other:501") }
         let stale = c
         var p = Procedure(); p.Title = "Entscheidung"; p.Department = "WEG-Verwaltung"; p.Topic = Category.defaults[0].Subcategories[0]

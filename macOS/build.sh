@@ -13,6 +13,7 @@ done
 lipo -create "$BUILD/Prozesshandbuch-arm64" "$BUILD/Prozesshandbuch-x86_64" -output "$APP/Contents/MacOS/Prozesshandbuch"
 xcrun swift MakeIcon.swift "$BUILD/AppIcon.iconset"
 iconutil -c icns "$BUILD/AppIcon.iconset" -o "$APP/Contents/Resources/AppIcon.icns"
+ditto "../Resources/Mieterwechsel" "$APP/Contents/Resources/Mieterwechsel"
 cp Info.plist "$APP/Contents/Info.plist"
 codesign --force --sign - "$APP"
 codesign --verify --deep --strict "$APP"

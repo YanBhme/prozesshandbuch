@@ -11,12 +11,14 @@ if not exist "%PH_CSC%" (
  pause
  exit /b 1
 )
-echo Prozesshandbuch Version 0.6.1 wird erstellt. Bitte eine laufende Version vorher schliessen.
+echo Prozesshandbuch Version 0.7.0 wird erstellt. Bitte eine laufende Version vorher schliessen.
 if not exist "%PH_TARGET%" mkdir "%PH_TARGET%"
 if errorlevel 1 goto failed
 "%PH_CSC%" /nologo /codepage:65001 /target:winexe /win32manifest:"%PH_SOURCE%app.manifest" /optimize+ /out:"%PH_TARGET%\Prozesshandbuch-neu.exe" /r:System.dll /r:System.Core.dll /r:System.Drawing.dll /r:System.Windows.Forms.dll /r:System.Web.Extensions.dll /resource:"%PH_SOURCE%Logo-Bruno-Gruettner.jpg",BrandLogo "%PH_SOURCE%Prozesshandbuch.cs"
 if errorlevel 1 goto failed
 "%PH_CSC%" /nologo /codepage:65001 /target:exe /main:StorageTests /out:"%PH_TARGET%\Pruefung.exe" /r:System.dll /r:System.Core.dll /r:System.Drawing.dll /r:System.Windows.Forms.dll /r:System.Web.Extensions.dll /resource:"%PH_SOURCE%Logo-Bruno-Gruettner.jpg",BrandLogo "%PH_SOURCE%Prozesshandbuch.cs" "%PH_SOURCE%Tests.cs"
+if errorlevel 1 goto failed
+xcopy "%PH_SOURCE%Resources" "%PH_TARGET%\Resources\" /E /I /Y >nul
 if errorlevel 1 goto failed
 "%PH_TARGET%\Pruefung.exe"
 if errorlevel 1 goto failed

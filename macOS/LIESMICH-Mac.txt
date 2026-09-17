@@ -1,5 +1,5 @@
 BRUNO GRÜTTNER – PROZESSHANDBUCH FÜR MAC
-Version 0.6.1 · macOS 13 Ventura oder neuer · Intel und Apple Silicon
+Version 0.7.0 · macOS 13 Ventura oder neuer · Intel und Apple Silicon
 
 INSTALLATION
 1. DMG öffnen und Prozesshandbuch.app auf „Programme“ ziehen.
@@ -37,14 +37,14 @@ Nach einem Neustart ohne Datenordner sind nur die Kategorien verfügbar.
 
 BEARBEITEN AUF BEIDEN SYSTEMEN
 Ein Windows-Handbuch aus Version 0.5.1 oder älter ist am Mac zunächst nur lesbar.
-1. Windows-Version 0.6.1 oder neuer verwenden.
+1. Windows-Version 0.7.0 oder neuer verwenden.
 2. In den Mac-Einstellungen deine Mac-Kennung kopieren.
 3. Unter deinem Windows-Bearbeiterkonto im Hauptmenü „Bearbeiterkonten“ öffnen,
    Mac-Kennung eintragen und speichern.
 Umgekehrt: Für ein am Mac angelegtes Handbuch zeigt die Windows-App unter
 „Bearbeiterkonten“ deine Windows-Kennung. Diese kannst du in den Mac-Einstellungen
 als deinen zusätzlichen Bearbeiterzugang freigeben.
-Mac und Windows nutzen danach Format 3. Alle Windows-Nutzer müssen auf 0.6.1
+Mac und Windows nutzen danach Format 3. Alle Windows-Nutzer müssen auf 0.7.0
 oder neuer aktualisieren; alte Versionen verweigern dieses Format absichtlich.
 Die Freigaben ergänzen die Serverrechte, sie ersetzen sie nicht.
 
@@ -77,3 +77,16 @@ App im Programme-Ordner in den Papierkorb legen. Gemeinsame Daten bleiben erhalt
 QUELLCODE UND DESIGN
 https://github.com/YanBhme/prozesshandbuch
 https://www.figma.com/design/TudbEvSk575cotEGA9KYLl
+
+
+Version 0.7.0 – Checkliste Mieterwechsel
+Unter Anleitung > Miethäuser > Checkliste Mieterwechsel stehen neun Abschnitte
+mit 96 Prüfpunkten bereit. Die ursprünglich vorgeschlagenen Abschnitte 1, 6 und 9
+sind nicht enthalten. Die verbleibenden Abschnitte sind von 1 bis 9 neu nummeriert.
+Unter Vorlagen gibt es eine Gesamtcheckliste und neun einzelne, ausfüllbare PDFs.
+Sie sind fest in der App enthalten und auch ohne Datenordner verfügbar.
+Kopie speichern lädt eine persönliche Datei herunter. Öffnen erstellt ebenfalls
+eine lokale Arbeitskopie. Häkchen ändern niemals die gemeinsame Originalvorlage.
+In einem PDF-Programm mit Formularunterstützung ausfüllen und speichern oder
+ausdrucken und handschriftlich abhaken.
+Bereits selbst veröffentlichte Mieterwechsel-Anleitungen haben weiterhin Vorrang.

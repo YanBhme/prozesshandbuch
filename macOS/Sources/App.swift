@@ -125,8 +125,10 @@ final class HandbookModel: ObservableObject {
         panel.title = "Dokumente hinzufügen"; panel.allowedContentTypes = Storage.allowed.sorted().compactMap { UTType(filenameExtension: $0) }
         return panel.runModal() == .OK ? panel.urls : []
     }
+    func canAccess(_ a: Attachment) -> Bool { Builtins.contains(a.File) || (online && root != nil) }
     func copy(_ a: Attachment, open: Bool = false) {
-        guard let root = root, online, !busy else { return }
+        guard canAccess(a), !busy else { return }
+        let root = root ?? Builtins.directory
         let destination: URL
         if open {
             destination = FileManager.default.temporaryDirectory.appendingPathComponent("Prozesshandbuch-\(UUID().uuidString)").appendingPathComponent((a.Name as NSString).lastPathComponent)
@@ -197,8 +199,8 @@ struct Card<Content: View>: View {
 }
 struct MainView: View {
     @EnvironmentObject var model: HandbookModel
-    @State private var menu = CommandLine.arguments.contains("--capture-guide") ? "Anleitung" : "Start"
-    @State private var category = "Alle Bereiche"
+    @State private var menu = CommandLine.arguments.contains("--capture-templates") ? "Vorlagen" : (CommandLine.arguments.contains("--capture-guide") || CommandLine.arguments.contains("--capture-tenant") ? "Anleitung" : "Start")
+    @State private var category = CommandLine.arguments.contains("--capture-tenant") ? "Miethäuser" : "Alle Bereiche"
     @State private var query = ""
     @State private var selected: String?
     @State private var settings = false
@@ -342,7 +344,7 @@ struct MainView: View {
             VStack(alignment: .leading, spacing: 16) {
                 HStack(alignment: .top, spacing: 14) {
                     Text(s.Id).font(.caption.bold()).padding(12).background(Color.peach).clipShape(Capsule())
-                    VStack(alignment: .leading, spacing: 6) { Text(s.Title).font(.system(size: 20, weight: .semibold)); Text("Zuständig · \(s.Owner)").font(.caption).foregroundColor(.secondary) }
+                    VStack(alignment: .leading, spacing: 6) { Text(s.Title).font(.system(size: 20, weight: .semibold)); if !s.Owner.isEmpty { Text("Zuständig · \(s.Owner)").font(.caption).foregroundColor(.secondary) } }
                 }
                 Text(s.Instructions).textSelection(.enabled)
                 if !s.Checklist.isEmpty {
@@ -352,7 +354,7 @@ struct MainView: View {
                     }
                 }
                 ForEach(s.Documents) { a in
-                    Button { model.copy(a, open: true) } label: { Label(a.Name, systemImage: "doc") }.disabled(!model.online || model.busy)
+                    Button { model.copy(a, open: true) } label: { Label(a.Name, systemImage: "doc") }.disabled(!model.canAccess(a) || model.busy)
                 }
                 Divider()
                 Text(route(s)).font(.caption).foregroundColor(.secondary)
@@ -362,14 +364,14 @@ struct MainView: View {
     private var templates: some View {
         VStack(alignment: .leading, spacing: 20) {
             HStack {
-                VStack(alignment: .leading, spacing: 8) { Text("Die richtige Vorlage.\nDirekt zur Hand.").font(.system(size: 32, weight: .semibold)); Text("Dokumente öffnen oder eine lokale Kopie speichern.").foregroundColor(.secondary) }
+                VStack(alignment: .leading, spacing: 8) { Text("Die richtige Vorlage.\nDirekt zur Hand.").font(.system(size: 32, weight: .semibold)); Text("Persönliche Kopie speichern und abhaken – digital oder auf Papier.").foregroundColor(.secondary) }
                 Spacer()
                 if model.canEdit { Button { model.uploadTemplates() } label: { Label("Vorlage hochladen", systemImage: "plus") }.buttonStyle(SoftButton(primary: true)).disabled(model.busy) }
             }
             TextField("Vorlagen durchsuchen", text: $query).textFieldStyle(.roundedBorder).controlSize(.large).frame(maxWidth: 440)
             ScrollView {
                 VStack(spacing: 12) {
-                    let files = model.catalog.Templates.filter { query.isEmpty || $0.Name.localizedStandardContains(query) }
+                    let files = Builtins.templates(for: model.catalog).filter { query.isEmpty || $0.Name.localizedStandardContains(query) }
                     if files.isEmpty { Card { VStack(alignment: .leading, spacing: 12) { Text(query.isEmpty ? "Noch keine Vorlagen hinterlegt" : "Keine passenden Vorlagen").font(.title2.bold()); Text(model.canEdit ? "Über „Vorlage hochladen“ kannst du Dokumente für alle bereitstellen." : "Veröffentlichte Vorlagen erscheinen hier, sobald ein Datenordner verbunden ist.").foregroundColor(.secondary) } } }
                     ForEach(files) { a in documentRow(a) }
                 }
@@ -382,8 +384,8 @@ struct MainView: View {
             Image(systemName: "doc.text").font(.title2).foregroundColor(.brandOrange)
             Text(a.Name).font(.system(size: 15, weight: .medium)).textSelection(.enabled)
             Spacer()
-            Button("Öffnen") { model.copy(a, open: true) }.buttonStyle(SoftButton()).disabled(!model.online || model.busy)
-            Button("Kopie speichern") { model.copy(a) }.buttonStyle(SoftButton(primary: true)).disabled(!model.online || model.busy)
+            Button("Öffnen") { model.copy(a, open: true) }.buttonStyle(SoftButton()).disabled(!model.canAccess(a) || model.busy)
+            Button("Kopie speichern") { model.copy(a) }.buttonStyle(SoftButton(primary: true)).disabled(!model.canAccess(a) || model.busy)
         } }
     }
     private func edit(_ p: Procedure) { draftCatalog = model.catalog; model.editing = true; draft = p }

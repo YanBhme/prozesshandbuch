@@ -39,5 +39,18 @@ Farben: Marineblau `#001743`, Orange `#E55411`. Das Mac-Signet wird als Vektorge
 ## Prüfung und Grenzen
 Build- und Teststatus stehen in GitHub Actions. Ein erfolgreicher Build ersetzt keinen Test am Firmen-SMB-Server. Checklisten sind zum Nachlesen; individuelle Erledigungsstände werden nicht gespeichert. Anhanginhalte werden nicht volltextdurchsucht. Apple Developer-ID und Notarisierung sind noch nicht eingerichtet.
 
-## Oberfläche 0.6.1
+## Oberfläche 0.7.0
 „Hauptmenü“ steht in Anleitung und Vorlagen oben. Anleitung zeigt den Inhalt direkt; die Umschaltung zwischen Ablauf, Dokumenten und Textansicht entfällt.
+
+
+Version 0.7.0 – Checkliste Mieterwechsel
+Unter Anleitung > Miethäuser > Checkliste Mieterwechsel stehen neun Abschnitte
+mit 96 Prüfpunkten bereit. Die ursprünglich vorgeschlagenen Abschnitte 1, 6 und 9
+sind nicht enthalten. Die verbleibenden Abschnitte sind von 1 bis 9 neu nummeriert.
+Unter Vorlagen gibt es eine Gesamtcheckliste und neun einzelne, ausfüllbare PDFs.
+Sie sind fest in der App enthalten und auch ohne Datenordner verfügbar.
+Kopie speichern lädt eine persönliche Datei herunter. Öffnen erstellt ebenfalls
+eine lokale Arbeitskopie. Häkchen ändern niemals die gemeinsame Originalvorlage.
+In einem PDF-Programm mit Formularunterstützung ausfüllen und speichern oder
+ausdrucken und handschriftlich abhaken.
+Bereits selbst veröffentlichte Mieterwechsel-Anleitungen haben weiterhin Vorrang.
