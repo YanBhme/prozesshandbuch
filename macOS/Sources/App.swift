@@ -230,7 +230,7 @@ struct MainView: View {
                 Circle().fill(model.online ? Color.green : Color.brandOrange).frame(width: 6, height: 6)
                 Text(model.status).font(.system(size: 11))
                 Spacer()
-                Text("Prozesshandbuch · 0.6.1").font(.system(size: 11))
+                Text("Prozesshandbuch · \(Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "0.7.0")").font(.system(size: 11))
             }.foregroundColor(.secondary).padding(.horizontal, 24).padding(.vertical, 12).background(Color.white)
         }.background(Color.paper).foregroundColor(.ink)
             .frame(minWidth: 1050, minHeight: 720)

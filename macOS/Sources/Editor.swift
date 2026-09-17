@@ -163,7 +163,7 @@ struct SettingsView: View {
                 }
                 Text("Die tatsächlichen Zugriffsrechte setzt eure IT am Datenordner: du = Ändern, Mitarbeiter = Lesen.").font(.caption).foregroundColor(.secondary).fixedSize(horizontal: false, vertical: true)
             } }
-            Text("Prozesshandbuch 0.6.1 · macOS 13 oder neuer\nAnleitungen und Vorlagen werden ausschließlich im gewählten Datenordner gespeichert.").font(.caption).foregroundColor(.secondary)
+            Text("Prozesshandbuch 0.7.0 · macOS 13 oder neuer\nDie Checkliste Mieterwechsel und ihre PDF-Vorlagen sind in der App enthalten. Eigene Anleitungen und Vorlagen werden im gewählten Datenordner gespeichert.").font(.caption).foregroundColor(.secondary)
         }.padding(28).frame(width: 680).background(Color.paper).foregroundColor(.ink)
     }
     private func authorize() {
