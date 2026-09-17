@@ -209,7 +209,7 @@ struct MainView: View {
     private var current: Procedure? { entries.first(where: { $0.Id == selected }) ?? entries.first }
     var body: some View {
         VStack(spacing: 0) {
-            if menu == "Start" { home } else {
+            if menu == "Start" { ScrollView { home } } else {
                 HStack(spacing: 0) {
                     if menu == "Anleitung" { sidebar }
                     VStack(alignment: .leading, spacing: 22) {
@@ -243,12 +243,11 @@ struct MainView: View {
             } message: { Text(model.message ?? "") }
     }
     private var home: some View {
-        VStack(alignment: .leading, spacing: 34) {
+        VStack(alignment: .leading, spacing: 26) {
             HStack { Brand(); Spacer(); Button { settings = true } label: { Label("Einstellungen", systemImage: "gearshape") }.buttonStyle(SoftButton()) }
-            Spacer(minLength: 8)
             VStack(alignment: .leading, spacing: 14) {
                 Text("GUT ORGANISIERT. GEMEINSAM WEITER.").font(.system(size: 11, weight: .bold)).tracking(2).foregroundColor(.brandOrange)
-                Text("Wissen, das den\nAlltag leichter macht.").font(.system(size: 45, weight: .semibold)).tracking(-1)
+                Text("Wissen, das den\nAlltag leichter macht.").font(.system(size: 40, weight: .semibold)).tracking(-1).fixedSize(horizontal: false, vertical: true)
                 Text("Anleitungen und Vorlagen für unsere tägliche Zusammenarbeit.").font(.system(size: 16)).foregroundColor(.secondary)
             }
             HStack(spacing: 22) {
@@ -256,8 +255,7 @@ struct MainView: View {
                 homeCard("Vorlagen", "doc.on.doc", "Direkt mit der richtigen Vorlage starten", "Gemeinsame Dokumente finden und als lokale Kopie herunterladen.")
             }
             Text("3 Bereiche · 12 Unterkategorien · Ein gemeinsames Handbuch").font(.system(size: 12)).foregroundColor(.secondary)
-            Spacer(minLength: 8)
-        }.padding(48).frame(maxWidth: 1250)
+        }.padding(36).frame(maxWidth: 1250)
     }
     private func homeCard(_ title: String, _ icon: String, _ subtitle: String, _ text: String) -> some View {
         Button { menu = title; query = "" } label: {
@@ -310,8 +308,7 @@ struct MainView: View {
                     Text(p.Title).font(.system(size: 29, weight: .semibold)).fixedSize(horizontal: false, vertical: true)
                     Text(p.Department).font(.system(size: 13)).foregroundColor(.secondary)
                 }
-                Spacer(minLength: 8)
-                if model.canEdit {
+                    if model.canEdit {
                     Menu {
                         Button("Bearbeiten") { edit(p) }
                         Button("Neuer Prozess") { var n = Procedure(); n.Department = p.Department; n.Topic = p.Topic; edit(n) }

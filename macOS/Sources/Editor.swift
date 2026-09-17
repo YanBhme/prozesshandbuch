@@ -174,14 +174,24 @@ struct SettingsView: View {
     }
 }
 final class AppDelegate: NSObject, NSApplicationDelegate {
+    private var window: NSWindow?
+    private let model = HandbookModel()
     func applicationDidFinishLaunching(_ notification: Notification) {
-        NSApp.setActivationPolicy(.regular); NSApp.activate(ignoringOtherApps: true)
-        // CI-only capture of this application's own window; never records the desktop.
+        NSApp.setActivationPolicy(.regular)
+        let content = MainView().environmentObject(model)
+        let w = NSWindow(contentRect: NSRect(x: 0, y: 0, width: 1280, height: 820), styleMask: [.titled, .closable, .miniaturizable, .resizable], backing: .buffered, defer: false)
+        w.title = "Bruno Grüttner · Prozesshandbuch"
+        w.contentView = NSHostingView(rootView: content)
+        w.contentMinSize = NSSize(width: 1050, height: 720)
+        w.isReleasedWhenClosed = false
+        w.center(); w.setFrameAutosaveName("HandbookMain"); window = w
+        buildMenu(); w.makeKeyAndOrderFront(nil); NSApp.activate(ignoringOtherApps: true)
+        // CI captures only this application's own view, never the desktop.
         if let i = CommandLine.arguments.firstIndex(of: "--capture"), CommandLine.arguments.count > i + 1 {
             let path = CommandLine.arguments[i + 1]
             DispatchQueue.main.asyncAfter(deadline: .now() + 3) {
-                guard let view = NSApp.windows.first(where: { $0.isVisible })?.contentView,
-                      let rep = view.bitmapImageRepForCachingDisplay(in: view.bounds) else { fputs("Capture failed: no visible content view\n", stderr); exit(1) }
+                guard let view = self.window?.contentView,
+                      let rep = view.bitmapImageRepForCachingDisplay(in: view.bounds) else { fputs("Capture failed: no content view\n", stderr); exit(1) }
                 view.cacheDisplay(in: view.bounds, to: rep)
                 do {
                     guard let data = rep.representation(using: .png, properties: [:]) else { exit(1) }
@@ -190,14 +200,30 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             }
         }
     }
+    private func buildMenu() {
+        let menu = NSMenu()
+        let app = NSMenuItem(); menu.addItem(app); let appMenu = NSMenu(); app.submenu = appMenu
+        appMenu.addItem(withTitle: "Prozesshandbuch ausblenden", action: #selector(NSApplication.hide(_:)), keyEquivalent: "h")
+        appMenu.addItem(.separator())
+        appMenu.addItem(withTitle: "Prozesshandbuch beenden", action: #selector(NSApplication.terminate(_:)), keyEquivalent: "q")
+        let edit = NSMenuItem(); edit.title = "Bearbeiten"; menu.addItem(edit); let editMenu = NSMenu(title: "Bearbeiten"); edit.submenu = editMenu
+        for (title, action, key) in [("Widerrufen", "undo:", "z"), ("Ausschneiden", "cut:", "x"), ("Kopieren", "copy:", "c"), ("Einfügen", "paste:", "v"), ("Alles auswählen", "selectAll:", "a")] {
+            editMenu.addItem(withTitle: title, action: Selector(action), keyEquivalent: key)
+        }
+        let windows = NSMenuItem(); windows.title = "Fenster"; menu.addItem(windows); let windowMenu = NSMenu(title: "Fenster"); windows.submenu = windowMenu
+        windowMenu.addItem(withTitle: "Minimieren", action: #selector(NSWindow.performMiniaturize(_:)), keyEquivalent: "m")
+        NSApp.mainMenu = menu; NSApp.windowsMenu = windowMenu
+    }
+    func applicationShouldHandleReopen(_ sender: NSApplication, hasVisibleWindows flag: Bool) -> Bool {
+        window?.makeKeyAndOrderFront(nil); return true
+    }
     func applicationShouldTerminateAfterLastWindowClosed(_ sender: NSApplication) -> Bool { true }
 }
-@main struct ProzesshandbuchApp: App {
-    @NSApplicationDelegateAdaptor(AppDelegate.self) var delegate
-    @StateObject private var model = HandbookModel()
-    var body: some Scene {
-        WindowGroup("Bruno Grüttner · Prozesshandbuch") { MainView().environmentObject(model) }
-            .defaultSize(width: 1280, height: 820)
-            .commands { CommandGroup(replacing: .newItem) {} }
+@main struct ProzesshandbuchApp {
+    static func main() {
+        let app = NSApplication.shared
+        let delegate = AppDelegate()
+        app.delegate = delegate
+        withExtendedLifetime(delegate) { app.run() }
     }
 }
