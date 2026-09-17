@@ -8,17 +8,20 @@ permissions:
 jobs:
   macos:
     runs-on: macos-15
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
       - name: Build universal app and run tests
         run: bash macOS/build.sh
       - name: Launch smoke test
         run: |
-          open -W macOS/build/Prozesshandbuch.app --args --capture "$PWD/macOS/build/Start.png"
+          set -x
+          macOS/build/Prozesshandbuch.app/Contents/MacOS/Prozesshandbuch --capture "$PWD/macOS/build/Start.png"
           test -s macOS/build/Start.png
-          open -W macOS/build/Prozesshandbuch.app --args --capture-guide --capture "$PWD/macOS/build/Anleitung.png"
+          macOS/build/Prozesshandbuch.app/Contents/MacOS/Prozesshandbuch --capture-guide --capture "$PWD/macOS/build/Anleitung.png"
           test -s macOS/build/Anleitung.png
       - uses: actions/upload-artifact@v4
+        if: always()
         with:
           name: Prozesshandbuch-Mac
           path: |

@@ -1,6 +1,7 @@
 import SwiftUI
 import AppKit
 import IOKit
+import UniformTypeIdentifiers
 
 extension Color {
     static let ink = Color(red: 0, green: 23/255, blue: 67/255)
@@ -121,7 +122,7 @@ final class HandbookModel: ObservableObject {
     }
     static func pickDocuments() -> [URL] {
         let panel = NSOpenPanel(); panel.allowsMultipleSelection = true; panel.canChooseDirectories = false
-        panel.title = "Dokumente hinzufügen"; panel.allowedFileTypes = Storage.allowed.sorted()
+        panel.title = "Dokumente hinzufügen"; panel.allowedContentTypes = Storage.allowed.sorted().compactMap { UTType(filenameExtension: $0) }
         return panel.runModal() == .OK ? panel.urls : []
     }
     func copy(_ a: Attachment, open: Bool = false) {
@@ -420,6 +421,7 @@ struct FlowView: View {
         VStack(alignment: .leading, spacing: 14) {
             Text("Start: \(procedure.Steps.first?.Title ?? "–") · Ziele lassen sich anklicken.").font(.caption).foregroundColor(.secondary)
             ScrollViewReader { proxy in
+                ScrollView {
                 VStack(spacing: 18) {
                     ForEach(procedure.Steps) { s in
                         VStack(alignment: .leading, spacing: 16) {
@@ -432,6 +434,7 @@ struct FlowView: View {
                         }.padding(22).frame(maxWidth: .infinity, alignment: .leading).background(focus == s.Id ? Color.peach : Color.white).clipShape(RoundedRectangle(cornerRadius: 16)).id(s.Id)
                     }
                 }
+                }.frame(height: 510)
             }
         }
     }

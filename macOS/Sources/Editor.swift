@@ -181,12 +181,12 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             let path = CommandLine.arguments[i + 1]
             DispatchQueue.main.asyncAfter(deadline: .now() + 3) {
                 guard let view = NSApp.windows.first(where: { $0.isVisible })?.contentView,
-                      let rep = view.bitmapImageRepForCachingDisplay(in: view.bounds) else { exit(1) }
+                      let rep = view.bitmapImageRepForCachingDisplay(in: view.bounds) else { fputs("Capture failed: no visible content view\n", stderr); exit(1) }
                 view.cacheDisplay(in: view.bounds, to: rep)
                 do {
                     guard let data = rep.representation(using: .png, properties: [:]) else { exit(1) }
-                    try data.write(to: URL(fileURLWithPath: path)); NSApp.terminate(nil)
-                } catch { exit(1) }
+                    try data.write(to: URL(fileURLWithPath: path)); print("Captured: " + path); NSApp.terminate(nil)
+                } catch { fputs("Capture failed: \(error.localizedDescription)\n", stderr); exit(1) }
             }
         }
     }
