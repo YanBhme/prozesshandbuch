@@ -201,7 +201,6 @@ struct MainView: View {
     @State private var category = "Alle Bereiche"
     @State private var query = ""
     @State private var selected: String?
-    @State private var tab = "Anleitung"
     @State private var settings = false
     @State private var draft: Procedure?
     @State private var draftCatalog = Catalog()
@@ -214,7 +213,7 @@ struct MainView: View {
                     if menu == "Anleitung" { sidebar }
                     VStack(alignment: .leading, spacing: 22) {
                         HStack {
-                            if menu == "Vorlagen" { Button { menu = "Start"; query = "" } label: { Label("Hauptmenü", systemImage: "arrow.left") }.buttonStyle(SoftButton()) }
+                            Button { menu = "Start"; query = "" } label: { Label("Hauptmenü", systemImage: "arrow.left") }.buttonStyle(SoftButton())
                             Text(menu).font(.system(size: 15)).foregroundColor(.secondary)
                             Spacer()
                             if model.busy { ProgressView().controlSize(.small) }
@@ -229,7 +228,7 @@ struct MainView: View {
                 Circle().fill(model.online ? Color.green : Color.brandOrange).frame(width: 6, height: 6)
                 Text(model.status).font(.system(size: 11))
                 Spacer()
-                Text("Prozesshandbuch · 0.6.0").font(.system(size: 11))
+                Text("Prozesshandbuch · 0.6.1").font(.system(size: 11))
             }.foregroundColor(.secondary).padding(.horizontal, 24).padding(.vertical, 12).background(Color.white)
         }.background(Color.paper).foregroundColor(.ink)
             .frame(minWidth: 1050, minHeight: 720)
@@ -298,7 +297,6 @@ struct MainView: View {
                     }
                 }
             }
-            Button { menu = "Start"; query = "" } label: { Label("Hauptmenü", systemImage: "arrow.left") }.buttonStyle(SoftButton())
         }.padding(22).frame(width: 316).background(Color.white)
     }
     @ViewBuilder private var instructions: some View {
@@ -318,7 +316,6 @@ struct MainView: View {
                     } label: { Label("Bearbeiten", systemImage: "pencil") }.disabled(model.busy)
                 }
             }
-            Picker("Ansicht", selection: $tab) { ForEach(["Anleitung", "Ablauf", "Dokumente", "Textansicht"], id: \.self) { Text($0) } }.pickerStyle(.segmented)
             ScrollView {
                 VStack(alignment: .leading, spacing: 18) {
                     if p.Steps.isEmpty {
@@ -328,15 +325,6 @@ struct MainView: View {
                             if !p.Summary.isEmpty { Text(p.Summary).textSelection(.enabled) }
                             if model.canEdit { Button("Ablauf ergänzen") { edit(p) }.buttonStyle(SoftButton(primary: true)).disabled(model.busy) }
                         }.padding(.vertical, 16) }
-                    } else if tab == "Dokumente" {
-                        let docs = p.Steps.flatMap(\.Documents).reduce(into: [Attachment]()) { list, a in if !list.contains(where: { $0.File == a.File }) { list.append(a) } }
-                        if docs.isEmpty { Card { Text("Für diesen Prozess sind noch keine Dokumente hinterlegt.").foregroundColor(.secondary) } }
-                        ForEach(docs) { documentRow($0) }
-                    } else if tab == "Textansicht" {
-                        Card { Text(plainText(p)).font(.system(size: 14)).textSelection(.enabled).frame(maxWidth: .infinity, alignment: .leading) }
-                        Button("Text kopieren") { NSPasteboard.general.clearContents(); NSPasteboard.general.setString(plainText(p), forType: .string) }.buttonStyle(SoftButton())
-                    } else if tab == "Ablauf" {
-                        FlowView(procedure: p)
                     } else {
                         VStack(alignment: .leading, spacing: 12) {
                             Text("ÜBERBLICK").font(.system(size: 11, weight: .bold)).tracking(2).foregroundColor(.orange)
@@ -407,37 +395,4 @@ struct MainView: View {
 }
 func route(_ s: Step) -> String {
     s.Otherwise.isEmpty ? "Weiter → \(s.Next.isEmpty ? "Ende" : s.Next)" : "Ja → \(s.Next)     Nein → \(s.Otherwise)"
-}
-func plainText(_ p: Procedure) -> String {
-    ([p.Title, p.Department, p.Summary] + p.Steps.map { "\($0.Id) · \($0.Title)\nZuständig: \($0.Owner)\n\($0.Instructions)\n\($0.Checklist)\n\(route($0))" }).joined(separator: "\n\n")
-}
-struct FlowView: View {
-    let procedure: Procedure
-    @State private var focus: String?
-    var body: some View {
-        VStack(alignment: .leading, spacing: 14) {
-            Text("Start: \(procedure.Steps.first?.Title ?? "–") · Ziele lassen sich anklicken.").font(.caption).foregroundColor(.secondary)
-            ScrollViewReader { proxy in
-                ScrollView {
-                VStack(spacing: 18) {
-                    ForEach(procedure.Steps) { s in
-                        VStack(alignment: .leading, spacing: 16) {
-                            HStack { Image(systemName: s.Otherwise.isEmpty ? "rectangle.roundedtop" : "diamond").foregroundColor(.brandOrange); Text("\(s.Id) · \(s.Title)").font(.headline); Spacer() }
-                            Text(s.Owner).font(.caption).foregroundColor(.secondary)
-                            HStack {
-                                target(s.Next, title: s.Otherwise.isEmpty ? "Weiter" : "Ja", proxy: proxy)
-                                if !s.Otherwise.isEmpty { target(s.Otherwise, title: "Nein", proxy: proxy) }
-                            }
-                        }.padding(22).frame(maxWidth: .infinity, alignment: .leading).background(focus == s.Id ? Color.peach : Color.white).clipShape(RoundedRectangle(cornerRadius: 16)).id(s.Id)
-                    }
-                }
-                }.frame(height: 510)
-            }
-        }
-    }
-    private func target(_ id: String, title: String, proxy: ScrollViewProxy) -> some View {
-        Button {
-            guard !id.isEmpty else { return }; focus = id; withAnimation { proxy.scrollTo(id, anchor: .center) }
-        } label: { Label("\(title) → \(id.isEmpty ? "Ende" : procedure.Steps.first(where: { $0.Id == id })?.Title ?? id)", systemImage: "arrow.turn.down.right") }.buttonStyle(SoftButton()).disabled(id.isEmpty)
-    }
 }

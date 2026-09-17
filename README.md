@@ -38,3 +38,6 @@ Farben: Marineblau `#001743`, Orange `#E55411`. Das Mac-Signet wird als Vektorge
 
 ## Prüfung und Grenzen
 Build- und Teststatus stehen in GitHub Actions. Ein erfolgreicher Build ersetzt keinen Test am Firmen-SMB-Server. Checklisten sind zum Nachlesen; individuelle Erledigungsstände werden nicht gespeichert. Anhanginhalte werden nicht volltextdurchsucht. Apple Developer-ID und Notarisierung sind noch nicht eingerichtet.
+
+## Oberfläche 0.6.1
+„Hauptmenü“ steht in Anleitung und Vorlagen oben. Anleitung zeigt den Inhalt direkt; die Umschaltung zwischen Ablauf, Dokumenten und Textansicht entfällt.

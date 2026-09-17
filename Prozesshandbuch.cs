@@ -148,6 +148,7 @@ public class ModernTabs:UserControl {
  public void Initialize(){
   foreach(Control c in navigation.Controls.Cast<Control>().ToArray())c.Dispose();navigation.Controls.Clear();buttons.Clear();
   for(int i=0;i<TabPages.Count;i++){int index=i;var b=UI.Button(TabPages[i].Text,delegate{SelectPage(index);});buttons.Add(b);navigation.Controls.Add(b);}
+  navigation.Visible=TabPages.Count>1;
   if(TabPages.Count>0)SelectPage(0);
  }
  public void SelectPage(int index){
@@ -249,14 +250,14 @@ public class MainForm:Form {
  Procedure Selected {get{return list.SelectedItem as Procedure;}}
  bool CanEdit {get{return online&&catalog!=null&&catalog.EditorSid==Storage.Sid();}}
  public MainForm(){
-  Text="Bruno Grüttner | Prozesshandbuch 0.6.0";Font=new Font("Segoe UI",12);BackColor=UI.Pale;ForeColor=UI.Ink;
+  Text="Bruno Grüttner | Prozesshandbuch 0.6.1";Font=new Font("Segoe UI",12);BackColor=UI.Pale;ForeColor=UI.Ink;
   Size=new Size(1380,920);MinimumSize=new Size(1120,740);StartPosition=FormStartPosition.CenterScreen;AutoScaleDimensions=new SizeF(96,96);AutoScaleMode=AutoScaleMode.Dpi;
   var shell=new TableLayoutPanel{Dock=DockStyle.Fill,ColumnCount=2,RowCount=1,Margin=Padding.Empty,Padding=Padding.Empty};
   shell.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute,330));shell.ColumnStyles.Add(new ColumnStyle(SizeType.Percent,100));
-  var sidebar=new TableLayoutPanel{Dock=DockStyle.Fill,BackColor=Color.White,ColumnCount=1,RowCount=10,Padding=new Padding(24,20,24,18),Margin=Padding.Empty};
+  var sidebar=new TableLayoutPanel{Dock=DockStyle.Fill,BackColor=Color.White,ColumnCount=1,RowCount=9,Padding=new Padding(24,20,24,18),Margin=Padding.Empty};
   foreach(int height in new[]{70,40,26,44,28,184,34})sidebar.RowStyles.Add(new RowStyle(SizeType.Absolute,height));
   sidebar.RowStyles[2].SizeType=SizeType.AutoSize;sidebar.RowStyles[4].SizeType=SizeType.AutoSize;sidebar.RowStyles[5].SizeType=SizeType.AutoSize;
-  sidebar.RowStyles.Add(new RowStyle(SizeType.Percent,100));sidebar.RowStyles.Add(new RowStyle(SizeType.Absolute,54));sidebar.RowStyles.Add(new RowStyle(SizeType.Absolute,50));
+  sidebar.RowStyles.Add(new RowStyle(SizeType.Percent,100));sidebar.RowStyles.Add(new RowStyle(SizeType.Absolute,54));
   var logo=new PictureBox{Image=UI.Logo(),Dock=DockStyle.Fill,SizeMode=PictureBoxSizeMode.Zoom,AccessibleName="Bruno Grüttner Grundstücksverwaltungen",Margin=new Padding(0,0,0,16)};
   sidebar.Controls.Add(logo,0,0);
   var section=new Label{Text="Prozessbibliothek",Dock=DockStyle.Fill,TextAlign=ContentAlignment.MiddleLeft,Font=new Font("Segoe UI",15,FontStyle.Bold)};sidebar.Controls.Add(section,0,1);
@@ -270,22 +271,22 @@ public class MainForm:Form {
   resultCount.Dock=DockStyle.Fill;resultCount.TextAlign=ContentAlignment.MiddleLeft;resultCount.ForeColor=UI.Muted;resultCount.Font=new Font("Segoe UI",10.5f);sidebar.Controls.Add(resultCount,0,6);
   list.Dock=DockStyle.Fill;list.BackColor=Color.White;list.BorderStyle=BorderStyle.None;list.DrawMode=DrawMode.OwnerDrawFixed;list.ItemHeight=116;list.IntegralHeight=false;list.DrawItem+=DrawProcess;sidebar.Controls.Add(list,0,7);
   var folder=UI.Button("Einstellungen · Datenordner",delegate{ChooseFolder();});folder.Dock=DockStyle.Fill;folder.BackColor=UI.Pale;sidebar.Controls.Add(folder,0,8);
-  var help=UI.Button("← Hauptmenü",delegate{ShowScreen(homeScreen);});help.Dock=DockStyle.Fill;sidebar.Controls.Add(help,0,9);shell.Controls.Add(sidebar,0,0);
+  shell.Controls.Add(sidebar,0,0);
   var workspace=new TableLayoutPanel{Dock=DockStyle.Fill,ColumnCount=1,RowCount=4,Padding=new Padding(36,24,32,12),Margin=Padding.Empty};
   workspace.RowStyles.Add(new RowStyle(SizeType.Absolute,62));workspace.RowStyles.Add(new RowStyle(SizeType.AutoSize));workspace.RowStyles.Add(new RowStyle(SizeType.Percent,100));workspace.RowStyles.Add(new RowStyle(SizeType.Absolute,58));
-  var top=new TableLayoutPanel{Dock=DockStyle.Fill,ColumnCount=2,RowCount=1};top.ColumnStyles.Add(new ColumnStyle(SizeType.Percent,100));top.ColumnStyles.Add(new ColumnStyle(SizeType.AutoSize));
-  role.Dock=DockStyle.Fill;role.TextAlign=ContentAlignment.MiddleLeft;role.Font=new Font("Segoe UI",11);role.ForeColor=UI.Muted;top.Controls.Add(role,0,0);
+  var top=new TableLayoutPanel{Dock=DockStyle.Fill,ColumnCount=3,RowCount=1};top.ColumnStyles.Add(new ColumnStyle(SizeType.AutoSize));top.ColumnStyles.Add(new ColumnStyle(SizeType.Percent,100));top.ColumnStyles.Add(new ColumnStyle(SizeType.AutoSize));
+  role.Dock=DockStyle.Fill;role.TextAlign=ContentAlignment.MiddleLeft;role.Font=new Font("Segoe UI",11);role.ForeColor=UI.Muted;top.Controls.Add(UI.Button("← Hauptmenü",delegate{ShowScreen(homeScreen);}),0,0);top.Controls.Add(role,1,0);
   var actions=new FlowLayoutPanel{AutoSize=true,WrapContents=false,FlowDirection=FlowDirection.LeftToRight,Margin=Padding.Empty};
   actions.Controls.Add(UI.Button("Aktualisieren",delegate{RefreshCatalog(false);}));
   add=UI.Button("+ Prozess",delegate{EditProcess(true);});UI.Primary(add);edit=UI.Button("Bearbeiten",delegate{EditProcess(false);});delete=UI.Button("Löschen",delegate{DeleteProcess();});
-  actions.Controls.Add(edit);actions.Controls.Add(delete);actions.Controls.Add(add);top.Controls.Add(actions,1,0);workspace.Controls.Add(top,0,0);
+  actions.Controls.Add(edit);actions.Controls.Add(delete);actions.Controls.Add(add);top.Controls.Add(actions,2,0);workspace.Controls.Add(top,0,0);
   var titleArea=new TableLayoutPanel{Dock=DockStyle.Fill,AutoSize=true,ColumnCount=1,RowCount=2,Padding=new Padding(0,10,0,26)};
   titleArea.ColumnStyles.Add(new ColumnStyle(SizeType.Percent,100));
   heading.AutoSize=true;heading.Dock=DockStyle.Fill;heading.Font=new Font("Segoe UI",26,FontStyle.Bold);heading.Text="Willkommen.";heading.Margin=new Padding(0,0,0,10);
   metadata.AutoSize=true;metadata.Dock=DockStyle.Fill;metadata.ForeColor=UI.Muted;metadata.Font=new Font("Segoe UI",11);metadata.Margin=Padding.Empty;
   titleArea.Controls.Add(heading,0,0);titleArea.Controls.Add(metadata,0,1);workspace.Controls.Add(titleArea,0,1);
   tabs.Dock=DockStyle.Fill;var first=new ContentPage("Anleitung");var second=new ContentPage("Ablauf");var third=new ContentPage("Dokumente");var fourth=new ContentPage("Textansicht");
-  tabs.TabPages.AddRange(new[]{first,second,third,fourth});
+  tabs.TabPages.Add(first);
   var scroll=new Panel{Dock=DockStyle.Fill,AutoScroll=true,BackColor=UI.Pale};reader.Location=Point.Empty;reader.Width=700;reader.Height=460;reader.OpenAttachment+=OpenDocumentFile;scroll.Controls.Add(reader);
   scroll.Resize+=delegate{reader.Width=Math.Max(200,scroll.ClientSize.Width-SystemInformation.VerticalScrollBarWidth-2);reader.Invalidate();};first.Controls.Add(scroll);
   instructions.Dock=DockStyle.Fill;instructions.ReadOnly=true;instructions.BackColor=Color.White;instructions.BorderStyle=BorderStyle.None;instructions.Font=Font;instructions.DetectUrls=false;instructions.AccessibleName="Vollständige Arbeitsanweisung als auswählbarer Text";
@@ -415,7 +416,7 @@ public class MainForm:Form {
    var sid=new TextBox{Text=Storage.Sid(),ReadOnly=true,Dock=DockStyle.Fill};layout.Controls.Add(sid,0,1);
    layout.Controls.Add(UI.Label("Deine Mac-Kennung (aus den Einstellungen der Mac-App)"),0,2);
    var mac=new TextBox{Text=catalog.EditorMacId??"",ReadOnly=!CanEdit,Dock=DockStyle.Fill};layout.Controls.Add(mac,0,3);
-   layout.Controls.Add(new Label{Text=CanEdit?"Du kannst dein eigenes Mac-Konto zusätzlich freigeben. Nach dem Speichern benötigen alle Windows-Nutzer Version 0.6.0 oder neuer. Die tatsächlichen Lese- und Änderungsrechte setzt eure IT am Datenordner.":"Für ein am Mac angelegtes Handbuch: Übertrage deine Windows-Kennung in den Einstellungen der Mac-App. Nur der bereits freigegebene Bearbeiter darf Konten freigeben.",Dock=DockStyle.Fill,Padding=new Padding(0,12,0,0)},0,4);
+   layout.Controls.Add(new Label{Text=CanEdit?"Du kannst dein eigenes Mac-Konto zusätzlich freigeben. Nach dem Speichern benötigen alle Windows-Nutzer Version 0.6.1 oder neuer. Die tatsächlichen Lese- und Änderungsrechte setzt eure IT am Datenordner.":"Für ein am Mac angelegtes Handbuch: Übertrage deine Windows-Kennung in den Einstellungen der Mac-App. Nur der bereits freigegebene Bearbeiter darf Konten freigeben.",Dock=DockStyle.Fill,Padding=new Padding(0,12,0,0)},0,4);
    var save=UI.Button("Mac-Freigabe speichern",delegate{
     if(!CanEdit)return;string id=mac.Text.Trim();if(id!=""&&!System.Text.RegularExpressions.Regex.IsMatch(id,@"^mac:[A-Za-z0-9.:-]+$")){UI.Error(new Exception("Bitte die vollständige Mac-Kennung übernehmen."));return;}
     try{var next=Storage.Clone(catalog);next.EditorMacId=id;Storage.Save(root,next,catalog.Revision);dataGeneration++;catalog=next;UpdateButtons();SetStatus();f.Close();}catch(Exception e){UI.Error(e);}

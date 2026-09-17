@@ -1,5 +1,5 @@
 BRUNO GRÜTTNER – PROZESSHANDBUCH FÜR MAC
-Version 0.6.0 · macOS 13 Ventura oder neuer · Intel und Apple Silicon
+Version 0.6.1 · macOS 13 Ventura oder neuer · Intel und Apple Silicon
 
 INSTALLATION
 1. DMG öffnen und Prozesshandbuch.app auf „Programme“ ziehen.
@@ -37,14 +37,14 @@ Nach einem Neustart ohne Datenordner sind nur die Kategorien verfügbar.
 
 BEARBEITEN AUF BEIDEN SYSTEMEN
 Ein Windows-Handbuch aus Version 0.5.1 oder älter ist am Mac zunächst nur lesbar.
-1. Windows-Version 0.6.0 oder neuer verwenden.
+1. Windows-Version 0.6.1 oder neuer verwenden.
 2. In den Mac-Einstellungen deine Mac-Kennung kopieren.
 3. Unter deinem Windows-Bearbeiterkonto im Hauptmenü „Bearbeiterkonten“ öffnen,
    Mac-Kennung eintragen und speichern.
 Umgekehrt: Für ein am Mac angelegtes Handbuch zeigt die Windows-App unter
 „Bearbeiterkonten“ deine Windows-Kennung. Diese kannst du in den Mac-Einstellungen
 als deinen zusätzlichen Bearbeiterzugang freigeben.
-Mac und Windows nutzen danach Format 3. Alle Windows-Nutzer müssen auf 0.6.0
+Mac und Windows nutzen danach Format 3. Alle Windows-Nutzer müssen auf 0.6.1
 oder neuer aktualisieren; alte Versionen verweigern dieses Format absichtlich.
 Die Freigaben ergänzen die Serverrechte, sie ersetzen sie nicht.
 
@@ -52,7 +52,7 @@ ANLEITUNGEN UND VORLAGEN
 Anleitung: Kategorie wählen, Unterkategorie anklicken, als Bearbeiter „Bearbeiten“.
 Prozessschritte enthalten Zuständigkeit, Anweisung, Checkliste, Dokumente und
 Weiter-/Ja-/Nein-Ziele. Leeres Weiter-Ziel bedeutet Ende.
-Die Ablaufansicht stellt Schritte und anklickbare Verzweigungsziele dar.
+Die Anleitung wird direkt angezeigt, ohne zusätzliche Ansichtsauswahl.
 Checklisten dienen zum Nachlesen; Mitarbeiter-Bearbeitungsstände werden nicht gespeichert.
 Vorlagen: „Vorlage hochladen“ ist nur für den freigegebenen Bearbeiter sichtbar.
 „Kopie speichern“ lädt eine lokale Datei herunter. „Öffnen“ öffnet ebenfalls eine

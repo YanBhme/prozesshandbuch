@@ -154,7 +154,7 @@ struct SettingsView: View {
                 Text("Deine Mac-Kennung").font(.caption).foregroundColor(.secondary)
                 HStack { Text(model.identity).font(.system(size: 11, design: .monospaced)).textSelection(.enabled); Spacer(); Button("Kopieren") { NSPasteboard.general.clearContents(); NSPasteboard.general.setString(model.identity, forType: .string) } }
                 if !model.canEdit {
-                    Text("Für ein bestehendes Windows-Handbuch: Kopiere diese Kennung und trage sie unter Windows-Version 0.6.0 oder neuer über „Bearbeiterkonten“ ein. Ältere Handbücher bleiben auf dem Mac lesbar.").font(.caption).foregroundColor(.secondary).fixedSize(horizontal: false, vertical: true)
+                    Text("Für ein bestehendes Windows-Handbuch: Kopiere diese Kennung und trage sie unter Windows-Version 0.6.1 oder neuer über „Bearbeiterkonten“ ein. Ältere Handbücher bleiben auf dem Mac lesbar.").font(.caption).foregroundColor(.secondary).fixedSize(horizontal: false, vertical: true)
                 } else {
                     Divider()
                     Text("Dein Windows-Konto zusätzlich freigeben").font(.subheadline.bold())
@@ -163,7 +163,7 @@ struct SettingsView: View {
                 }
                 Text("Die tatsächlichen Zugriffsrechte setzt eure IT am Datenordner: du = Ändern, Mitarbeiter = Lesen.").font(.caption).foregroundColor(.secondary).fixedSize(horizontal: false, vertical: true)
             } }
-            Text("Prozesshandbuch 0.6.0 · macOS 13 oder neuer\nAnleitungen und Vorlagen werden ausschließlich im gewählten Datenordner gespeichert.").font(.caption).foregroundColor(.secondary)
+            Text("Prozesshandbuch 0.6.1 · macOS 13 oder neuer\nAnleitungen und Vorlagen werden ausschließlich im gewählten Datenordner gespeichert.").font(.caption).foregroundColor(.secondary)
         }.padding(28).frame(width: 680).background(Color.paper).foregroundColor(.ink)
     }
     private func authorize() {

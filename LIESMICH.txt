@@ -1,4 +1,7 @@
-﻿AKTUELL: VERSION 0.6.0 – GEMEINSAME NUTZUNG MIT MAC
+﻿VERSION 0.6.1 – OBERFLÄCHE
+Hauptmenü steht bei Anleitung jetzt oben. Die separate Ansichtsauswahl entfällt.
+
+AKTUELL: VERSION 0.6.0 – GEMEINSAME NUTZUNG MIT MAC
 
 Diese Fassung unterstützt das gemeinsame Datenformat 3. Alle Windows-Nutzer
 müssen Version 0.6.0 oder neuer verwenden, sobald erstmals damit gespeichert wird.
