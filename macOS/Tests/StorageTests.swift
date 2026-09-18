@@ -27,7 +27,9 @@ import Darwin
         try check(try Storage.read(root) == c, "JSON-Roundtrip")
         let builtin = Builtins.procedure("Miethäuser", "Checkliste Mieterwechsel")!
         try check(builtin.Steps.count == 9 && builtin.Steps.reduce(0) { $0 + $1.Checklist.components(separatedBy: "\n").count } == 96, "Neun Abschnitte und 96 Prüfpunkte")
-        try check(Builtins.templates(for: c).count == 10 && c.Templates.isEmpty, "Vorlagen ohne Mutation")
+        try check(Builtins.templates(for: c).isEmpty && Builtins.templates.count == 10 && Set(builtin.Steps.flatMap(\.Documents).map(\.File)).count == 10, "Checklisten ausschließlich in Anleitung")
+        var forms = c; forms.Templates = [Builtins.templates[0], Attachment(Name: "Wohnungsbewerbung.pdf", File: "bewerbung.pdf")]
+        try check(Builtins.templates(for: forms).map(\.File) == ["bewerbung.pdf"], "Formulare sichtbar, Checklisten ausgeblendet")
         var custom = c; var replacement = builtin; replacement.Steps = []; custom.Processes.append(replacement)
         try check(custom.entries.first { $0.Topic == "Checkliste Mieterwechsel" }!.Steps.isEmpty, "Eigene Anleitung hat Vorrang")
         let a = Builtins.templates[0]; let master = try Data(contentsOf: Storage.document(root, a))

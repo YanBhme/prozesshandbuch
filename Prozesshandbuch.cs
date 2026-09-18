@@ -36,7 +36,7 @@ public static class Builtins {
   return Storage.Json().Deserialize<List<Attachment>>(File.ReadAllText(file,Encoding.UTF8));
  }
  public static bool Contains(string file){return Templates().Any(a=>a.File==file);}
- public static List<Attachment> Available(Catalog c){return Templates().Concat(c.Templates??new List<Attachment>()).GroupBy(a=>a.File).Select(g=>g.First()).ToList();}
+ public static List<Attachment> Available(Catalog c){return (c.Templates??new List<Attachment>()).Where(a=>!Contains(a.File)).GroupBy(a=>a.File).Select(g=>g.First()).ToList();}
  public static Procedure ProcedureFor(string department,string topic){
   if(department!="Miethäuser"||topic!="Checkliste Mieterwechsel")return null;
   string file=Path.Combine(DirectoryPath,"procedure.json");
@@ -188,60 +188,73 @@ public class ModernTabs:UserControl {
  }
  protected override void Dispose(bool disposing){if(disposing)foreach(var p in TabPages)if(!p.IsDisposed)p.Dispose();base.Dispose(disposing);}
 }
-public class ReadingCanvas:Control {
- Procedure process;string message="";readonly List<Tuple<Rectangle,Attachment>> links=new List<Tuple<Rectangle,Attachment>>();
- public event Action<Attachment> OpenAttachment;
- int preferred=460;
- public ReadingCanvas(){DoubleBuffered=true;BackColor=UI.Pale;Font=new Font("Segoe UI",12);Cursor=Cursors.Default;AccessibleName="Prozessanleitung";TabStop=true;}
- public void SetContent(Procedure p,string empty){process=p;message=empty??"";Invalidate();}
- protected override void OnMouseMove(MouseEventArgs e){Cursor=links.Any(x=>x.Item1.Contains(e.Location))?Cursors.Hand:Cursors.Default;base.OnMouseMove(e);}
- protected override void OnMouseClick(MouseEventArgs e){foreach(var link in links)if(link.Item1.Contains(e.Location)&&OpenAttachment!=null){OpenAttachment(link.Item2);break;}base.OnMouseClick(e);}
+// Native controls retain keyboard navigation and readable text at Windows display scaling.
+public class BrandView:Control {
+ public BrandView(){DoubleBuffered=true;ResizeRedraw=true;SetStyle(ControlStyles.SupportsTransparentBackColor,true);BackColor=Color.Transparent;AccessibleName="Bruno Grüttner Grundstücksverwaltungen Immobilien e.K.";Size=new Size(290,60);}
  protected override void OnPaint(PaintEventArgs e){
-  base.OnPaint(e);var g=e.Graphics;g.SmoothingMode=SmoothingMode.AntiAlias;links.Clear();
-  float scale=g.DpiX/96f;g.ScaleTransform(scale,scale);int pad=28,gap=20,y=2,width=Math.Max(160,(int)(Width/scale)-4);
-  using(var body=new Font("Segoe UI",16,FontStyle.Regular,GraphicsUnit.Pixel))using(var title=new Font("Segoe UI",21,FontStyle.Bold,GraphicsUnit.Pixel))using(var small=new Font("Segoe UI",14,FontStyle.Regular,GraphicsUnit.Pixel))using(var label=new Font("Segoe UI",15,FontStyle.Bold,GraphicsUnit.Pixel)){
-   if(process==null){
-    int h=Math.Max(270,Measure(g,message,body,width-pad*2)+pad*4+60);
-    Card(g,new Rectangle(0,y,width,h),Color.White);
-    Draw(g,"Alles an einem Ort.",title,UI.Ink,new Rectangle(pad,pad,width-pad*2,50));
-    Draw(g,message,body,UI.Muted,new Rectangle(pad,pad+65,width-pad*2,h-pad-65));
-    y+=h;
-   }else{
-    string overview=String.IsNullOrWhiteSpace(process.Summary)?"Für diesen Prozess ist noch kein Überblick hinterlegt.":process.Summary;
-    int h=Measure(g,overview,body,width-pad*2)+pad*2+80;
-    Card(g,new Rectangle(0,y,width,h),UI.Ink);
-    Draw(g,"ÜBERBLICK",label,Color.FromArgb(255,168,116),new Rectangle(pad,y+pad,width-pad*2,30));
-    Draw(g,overview,body,Color.White,new Rectangle(pad,y+pad+38,width-pad*2,h-pad-65));
-    Draw(g,"Veröffentlicht · "+process.Updated,small,Color.FromArgb(194,210,233),new Rectangle(pad,y+h-pad-12,width-pad*2,28));y+=h+gap;
-    foreach(var step in process.Steps){
-     int left=pad+52,available=width-left-pad;
-     int titleH=Measure(g,step.Title,title,available);
-     int instructionH=Measure(g,step.Instructions??"",body,width-pad*2);
-     string[] checks=(step.Checklist??"").Split(new[]{'\r','\n'},StringSplitOptions.RemoveEmptyEntries);
-     int checkHeight=checks.Sum(x=>Measure(g,x,body,width-pad*2-28)+10);
-     string next=String.IsNullOrWhiteSpace(step.Otherwise)?"Weiter: "+(String.IsNullOrWhiteSpace(step.Next)?"Ende":step.Next):"Ja → "+step.Next+"     Nein → "+step.Otherwise;
-     int cardH=pad*2+Math.Max(42,titleH)+36+instructionH+22+(checks.Length>0?46+checkHeight:0)+step.Documents.Sum(d=>Measure(g,"Dokument öffnen · "+d.Name,label,width-pad*2)+16)+46;
-     Card(g,new Rectangle(0,y,width,cardH),Color.White);
-     using(var brush=new SolidBrush(UI.Peach))g.FillEllipse(brush,pad,y+pad,38,38);
-     Draw(g,step.Id,label,UI.OrangeText,new Rectangle(pad,y+pad+7,38,28),true);
-     Draw(g,step.Title,title,UI.Ink,new Rectangle(left,y+pad,available,titleH+2));
-     Draw(g,"Zuständig · "+step.Owner,small,UI.Muted,new Rectangle(left,y+pad+titleH+7,available,29));
-     int cy=y+pad+Math.Max(42,titleH)+36;
-     Draw(g,step.Instructions??"",body,UI.Ink,new Rectangle(pad,cy,width-pad*2,instructionH+2));cy+=instructionH+22;
-     if(checks.Length>0){Draw(g,"Checkliste",label,UI.Ink,new Rectangle(pad,cy,width-pad*2,30));cy+=40;
-      foreach(var check in checks){int lineH=Measure(g,check,body,width-pad*2-28);using(var pen=new Pen(UI.Line,1.5f))g.DrawRectangle(pen,pad,cy+5,15,15);Draw(g,check,body,UI.Muted,new Rectangle(pad+28,cy,width-pad*2-28,lineH+2));cy+=lineH+10;}
-     }
-     foreach(var doc in step.Documents){int docH=Measure(g,"Dokument öffnen · "+doc.Name,label,width-pad*2)+8;var rect=new Rectangle(pad,cy,width-pad*2,docH);Draw(g,"Dokument öffnen · "+doc.Name,label,UI.OrangeText,rect);links.Add(Tuple.Create(new Rectangle((int)(rect.X*scale),(int)(rect.Y*scale),(int)(rect.Width*scale),(int)(rect.Height*scale)),doc));cy+=docH+8;}
-     using(var pen=new Pen(UI.Line))g.DrawLine(pen,pad,y+cardH-52,width-pad,y+cardH-52);
-     Draw(g,next,small,UI.Muted,new Rectangle(pad,y+cardH-38,width-pad*2,28));y+=cardH+gap;
-    }
+  base.OnPaint(e);var g=e.Graphics;g.SmoothingMode=SmoothingMode.AntiAlias;
+  float k=Math.Min(Width/290f,Height/60f);g.ScaleTransform(k,k);float w=48,h=48,y=6;
+  using(var ink=new SolidBrush(UI.Ink))using(var orange=new SolidBrush(UI.Orange)){
+   g.FillRectangle(ink,0,y,w*.42f,h*.435f);g.FillRectangle(ink,0,y+h*.565f,w*.42f,h*.435f);
+   g.FillPolygon(orange,new[]{new PointF(w*.55f,y),new PointF(w,y),new PointF(w,y+h*.435f),new PointF(w*.81f,y+h*.435f),new PointF(w*.81f,y+h*.565f),new PointF(w,y+h*.565f),new PointF(w,y+h),new PointF(w*.55f,y+h)});
+   using(var title=new Font("Segoe UI",20,FontStyle.Bold,GraphicsUnit.Pixel))using(var small=new Font("Segoe UI",10,FontStyle.Regular,GraphicsUnit.Pixel)){
+    g.DrawString("Bruno Grüttner",title,ink,60,4);g.DrawString("Grundstücksverwaltungen",small,orange,61,31);g.DrawString("Immobilien e.K.",small,orange,61,44);
    }
   }
-  preferred=(int)((y+8)*scale);if(Height!=preferred&&IsHandleCreated)BeginInvoke((MethodInvoker)delegate{if(!IsDisposed&&Height!=preferred)Height=preferred;});
  }
- static void Card(Graphics g,Rectangle rect,Color color){using(var path=UI.Round(rect,18))using(var brush=new SolidBrush(color))g.FillPath(brush,path);}
- static int Measure(Graphics g,string text,Font f,int width){return (int)Math.Ceiling(g.MeasureString(String.IsNullOrEmpty(text)?" ":text,f,Math.Max(60,width)).Height);}
- static void Draw(Graphics g,string text,Font f,Color color,Rectangle rect,bool center=false){using(var brush=new SolidBrush(color))using(var format=new StringFormat{Alignment=center?StringAlignment.Center:StringAlignment.Near,Trimming=StringTrimming.None})g.DrawString(text,f,brush,rect,format);}
+}
+public class RoundedCard:TableLayoutPanel {
+ public Color Fill=Color.White;
+ public RoundedCard(){DoubleBuffered=true;ResizeRedraw=true;AutoSize=true;AutoSizeMode=AutoSizeMode.GrowAndShrink;ColumnCount=1;ColumnStyles.Add(new ColumnStyle(SizeType.Percent,100));Padding=new Padding(24);Margin=new Padding(0,0,0,18);Dock=DockStyle.Top;BackColor=UI.Pale;}
+ protected override void OnPaintBackground(PaintEventArgs e){e.Graphics.Clear(Parent==null?UI.Pale:Parent.BackColor);e.Graphics.SmoothingMode=SmoothingMode.AntiAlias;using(var path=UI.Round(new Rectangle(0,0,Width-1,Height-1),20))using(var brush=new SolidBrush(Fill))e.Graphics.FillPath(brush,path);}
+ public Label TextLine(string text,float size,FontStyle style,Color color,int bottom){var l=new Label{Text=text,AutoSize=true,Dock=DockStyle.Fill,Font=new Font("Segoe UI",size,style),ForeColor=color,BackColor=Fill,Margin=new Padding(0,0,0,bottom)};Controls.Add(l);return l;}
+}
+public class ReadingCanvas:UserControl {
+ public event Action<Attachment> OpenAttachment;
+ public event Action<Attachment> DownloadAttachment;
+ readonly TableLayoutPanel stack=new TableLayoutPanel{Dock=DockStyle.Top,AutoSize=true,AutoSizeMode=AutoSizeMode.GrowAndShrink,ColumnCount=1,Padding=Padding.Empty,Margin=Padding.Empty};
+ public ReadingCanvas(){AutoSize=true;AutoSizeMode=AutoSizeMode.GrowAndShrink;BackColor=UI.Pale;stack.ColumnStyles.Add(new ColumnStyle(SizeType.Percent,100));Controls.Add(stack);AccessibleName="Prozessanleitung";}
+ public void SetContent(Procedure process,string message){
+  SuspendLayout();stack.SuspendLayout();foreach(Control c in stack.Controls.Cast<Control>().ToArray())c.Dispose();stack.Controls.Clear();
+  if(process==null){var empty=new RoundedCard();empty.TextLine("Alles an einem Ort.",19,FontStyle.Bold,UI.Ink,16);empty.TextLine(message??"",10.5f,FontStyle.Regular,UI.Muted,0);stack.Controls.Add(empty);}
+  else {
+   var overview=new RoundedCard{Fill=UI.Ink};overview.TextLine("ÜBERBLICK",8.5f,FontStyle.Bold,Color.FromArgb(255,168,116),12);overview.TextLine(process.Summary,10.5f,FontStyle.Regular,Color.White,14);overview.TextLine("Veröffentlicht · "+process.Updated,8.5f,FontStyle.Regular,Color.FromArgb(190,205,225),0);stack.Controls.Add(overview);
+   int number=0;
+   foreach(var step in process.Steps){
+    number++;var card=new RoundedCard();card.TextLine(number.ToString("00")+"   "+step.Title,16,FontStyle.Bold,UI.Ink,16);
+    if(!String.IsNullOrWhiteSpace(step.Owner))card.TextLine("Zuständig · "+step.Owner,9,FontStyle.Regular,UI.Muted,12);
+    if(!String.IsNullOrWhiteSpace(step.Instructions))card.TextLine(step.Instructions,10.5f,FontStyle.Regular,UI.Ink,20);
+    var checks=(step.Checklist??"").Split(new[]{'\r','\n'},StringSplitOptions.RemoveEmptyEntries);
+    if(checks.Length>0)card.TextLine("Checkliste",10.5f,FontStyle.Bold,UI.Ink,12);
+    foreach(var check in checks)card.TextLine("□  "+check,10.5f,FontStyle.Regular,UI.Ink,12);
+    if(step.Documents.Count>0)card.TextLine("Dokumente zu diesem Schritt",9,FontStyle.Bold,UI.Muted,12);
+    foreach(var doc in step.Documents){
+     var row=new TableLayoutPanel{Dock=DockStyle.Top,AutoSize=true,ColumnCount=2,Margin=new Padding(0,0,0,12),BackColor=Color.White};row.ColumnStyles.Add(new ColumnStyle(SizeType.Percent,100));row.ColumnStyles.Add(new ColumnStyle(SizeType.AutoSize));
+     var name=new Label{Text=doc.Name,AutoSize=true,Dock=DockStyle.Fill,Font=new Font("Segoe UI",10),ForeColor=UI.Ink,Margin=new Padding(0,10,16,8)};row.Controls.Add(name,0,0);
+     var actions=new FlowLayoutPanel{AutoSize=true,WrapContents=false,Margin=Padding.Empty};
+     actions.Controls.Add(UI.Button("Öffnen",delegate{if(OpenAttachment!=null)OpenAttachment(doc);}));var save=UI.Button("Kopie speichern",delegate{if(DownloadAttachment!=null)DownloadAttachment(doc);});UI.Primary(save);actions.Controls.Add(save);row.Controls.Add(actions,1,0);card.Controls.Add(row);
+    }
+    if(!String.IsNullOrWhiteSpace(step.Otherwise))card.TextLine("Ja → "+step.Next+"   ·   Nein → "+step.Otherwise,9,FontStyle.Regular,UI.Muted,0);
+    stack.Controls.Add(card);
+   }
+  }
+  stack.ResumeLayout(true);ResumeLayout(true);
+ }
+}
+public class NavigationCard:Button {
+ public string Subtitle="",Description="";bool hover;
+ public NavigationCard(){SetStyle(ControlStyles.UserPaint|ControlStyles.OptimizedDoubleBuffer|ControlStyles.ResizeRedraw,true);FlatStyle=FlatStyle.Flat;FlatAppearance.BorderSize=0;Cursor=Cursors.Hand;BackColor=Color.White;MinimumSize=new Size(300,280);}
+ protected override void OnMouseEnter(EventArgs e){hover=true;Invalidate();base.OnMouseEnter(e);}protected override void OnMouseLeave(EventArgs e){hover=false;Invalidate();base.OnMouseLeave(e);}
+ protected override void OnPaint(PaintEventArgs e){
+  var g=e.Graphics;g.Clear(Parent.BackColor);g.SmoothingMode=SmoothingMode.AntiAlias;float k=g.DpiX/96f;g.ScaleTransform(k,k);int w=(int)(Width/k),h=(int)(Height/k);
+  using(var path=UI.Round(new Rectangle(0,0,w-2,h-2),22))using(var brush=new SolidBrush(hover?Color.FromArgb(251,252,254):Color.White))g.FillPath(brush,path);
+  using(var path=UI.Round(new Rectangle(26,24,48,48),12))using(var brush=new SolidBrush(UI.Peach))g.FillPath(brush,path);
+  using(var pen=new Pen(UI.Orange,1.8f)){g.DrawRectangle(pen,41,35,19,25);g.DrawLine(pen,45,42,56,42);g.DrawLine(pen,45,48,56,48);if(Text=="Anleitung")g.DrawLine(pen,45,35,45,60);}
+  using(var title=new Font("Segoe UI",27,FontStyle.Bold,GraphicsUnit.Pixel))using(var label=new Font("Segoe UI",14,FontStyle.Bold,GraphicsUnit.Pixel))using(var body=new Font("Segoe UI",14,FontStyle.Regular,GraphicsUnit.Pixel))using(var ink=new SolidBrush(UI.Ink))using(var muted=new SolidBrush(UI.Muted)){
+   g.DrawString(Text,title,ink,26,91);g.DrawString(Subtitle,label,ink,new RectangleF(26,140,w-52,42));g.DrawString(Description,body,muted,new RectangleF(26,180,w-52,65));g.DrawString("Öffnen",label,ink,26,h-46);g.DrawString("→",title,ink,w-58,h-53);
+  }
+  if(Focused&&ShowKeyboardCues)using(var path=UI.Round(new Rectangle(3,3,w-8,h-8),20))using(var pen=new Pen(UI.Orange,2))g.DrawPath(pen,path);
+ }
 }
 
 public static class UI {
@@ -252,7 +265,7 @@ public static class UI {
  public static Button Button(string text,EventHandler action){
   var b=new SoftButton{Text=text,AutoSize=true,MinimumSize=new Size(42,40),Padding=new Padding(12,6,12,6),
    Margin=new Padding(0,0,8,0),FlatStyle=FlatStyle.Flat,BackColor=Color.White,ForeColor=Ink,Cursor=Cursors.Hand,
-   Font=new Font("Segoe UI",11),UseVisualStyleBackColor=false};
+   Font=new Font("Segoe UI",9.5f,FontStyle.Bold),UseVisualStyleBackColor=false};
   b.FlatAppearance.BorderColor=Line;b.FlatAppearance.MouseOverBackColor=Peach;b.FlatAppearance.MouseDownBackColor=Color.FromArgb(255,222,203);
   b.Click+=action;return b;
  }
@@ -280,15 +293,15 @@ public class MainForm:Form {
  Procedure Selected {get{return list.SelectedItem as Procedure;}}
  bool CanEdit {get{return online&&catalog!=null&&catalog.EditorSid==Storage.Sid();}}
  public MainForm(){
-  Text="Bruno Grüttner | Prozesshandbuch 0.7.0";Font=new Font("Segoe UI",12);BackColor=UI.Pale;ForeColor=UI.Ink;
-  Size=new Size(1380,920);MinimumSize=new Size(1120,740);StartPosition=FormStartPosition.CenterScreen;AutoScaleDimensions=new SizeF(96,96);AutoScaleMode=AutoScaleMode.Dpi;
+  Text="Bruno Grüttner | Prozesshandbuch 0.8.0";Font=new Font("Segoe UI",10);BackColor=UI.Pale;ForeColor=UI.Ink;
+  Size=new Size(1240,850);MinimumSize=new Size(1120,740);StartPosition=FormStartPosition.CenterScreen;AutoScaleDimensions=new SizeF(96,96);AutoScaleMode=AutoScaleMode.Dpi;
   var shell=new TableLayoutPanel{Dock=DockStyle.Fill,ColumnCount=2,RowCount=1,Margin=Padding.Empty,Padding=Padding.Empty};
-  shell.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute,330));shell.ColumnStyles.Add(new ColumnStyle(SizeType.Percent,100));
+  shell.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute,300));shell.ColumnStyles.Add(new ColumnStyle(SizeType.Percent,100));
   var sidebar=new TableLayoutPanel{Dock=DockStyle.Fill,BackColor=Color.White,ColumnCount=1,RowCount=9,Padding=new Padding(24,20,24,18),Margin=Padding.Empty};
-  foreach(int height in new[]{70,40,26,44,28,184,34})sidebar.RowStyles.Add(new RowStyle(SizeType.Absolute,height));
+  foreach(int height in new[]{78,42,24,44,24,184,34})sidebar.RowStyles.Add(new RowStyle(SizeType.Absolute,height));
   sidebar.RowStyles[2].SizeType=SizeType.AutoSize;sidebar.RowStyles[4].SizeType=SizeType.AutoSize;sidebar.RowStyles[5].SizeType=SizeType.AutoSize;
   sidebar.RowStyles.Add(new RowStyle(SizeType.Percent,100));sidebar.RowStyles.Add(new RowStyle(SizeType.Absolute,54));
-  var logo=new PictureBox{Image=UI.Logo(),Dock=DockStyle.Fill,SizeMode=PictureBoxSizeMode.Zoom,AccessibleName="Bruno Grüttner Grundstücksverwaltungen",Margin=new Padding(0,0,0,16)};
+  var logo=new BrandView{Dock=DockStyle.Fill,Margin=new Padding(0,0,0,16)};
   sidebar.Controls.Add(logo,0,0);
   var section=new Label{Text="Prozessbibliothek",Dock=DockStyle.Fill,TextAlign=ContentAlignment.MiddleLeft,Font=new Font("Segoe UI",15,FontStyle.Bold)};sidebar.Controls.Add(section,0,1);
   sidebar.Controls.Add(new Label{Text="Suchen",AutoSize=true,Margin=new Padding(0,6,0,6),ForeColor=UI.Muted},0,2);
@@ -299,7 +312,7 @@ public class MainForm:Form {
   categoryNavigation.AutoSize=true;categoryNavigation.Dock=DockStyle.Fill;categoryNavigation.ColumnCount=1;categoryNavigation.Margin=Padding.Empty;categoryNavigation.AutoScroll=true;
   sidebar.Controls.Add(categoryNavigation,0,5);
   resultCount.Dock=DockStyle.Fill;resultCount.TextAlign=ContentAlignment.MiddleLeft;resultCount.ForeColor=UI.Muted;resultCount.Font=new Font("Segoe UI",10.5f);sidebar.Controls.Add(resultCount,0,6);
-  list.Dock=DockStyle.Fill;list.BackColor=Color.White;list.BorderStyle=BorderStyle.None;list.DrawMode=DrawMode.OwnerDrawFixed;list.ItemHeight=116;list.IntegralHeight=false;list.DrawItem+=DrawProcess;sidebar.Controls.Add(list,0,7);
+  list.Dock=DockStyle.Fill;list.BackColor=Color.White;list.BorderStyle=BorderStyle.None;list.DrawMode=DrawMode.OwnerDrawFixed;list.ItemHeight=82;list.IntegralHeight=false;list.DrawItem+=DrawProcess;sidebar.Controls.Add(list,0,7);
   var folder=UI.Button("Einstellungen · Datenordner",delegate{ChooseFolder();});folder.Dock=DockStyle.Fill;folder.BackColor=UI.Pale;sidebar.Controls.Add(folder,0,8);
   shell.Controls.Add(sidebar,0,0);
   var workspace=new TableLayoutPanel{Dock=DockStyle.Fill,ColumnCount=1,RowCount=4,Padding=new Padding(36,24,32,12),Margin=Padding.Empty};
@@ -312,12 +325,12 @@ public class MainForm:Form {
   actions.Controls.Add(edit);actions.Controls.Add(delete);actions.Controls.Add(add);top.Controls.Add(actions,2,0);workspace.Controls.Add(top,0,0);
   var titleArea=new TableLayoutPanel{Dock=DockStyle.Fill,AutoSize=true,ColumnCount=1,RowCount=2,Padding=new Padding(0,10,0,26)};
   titleArea.ColumnStyles.Add(new ColumnStyle(SizeType.Percent,100));
-  heading.AutoSize=true;heading.Dock=DockStyle.Fill;heading.Font=new Font("Segoe UI",26,FontStyle.Bold);heading.Text="Willkommen.";heading.Margin=new Padding(0,0,0,10);
+  heading.AutoSize=true;heading.Dock=DockStyle.Fill;heading.Font=new Font("Segoe UI",23,FontStyle.Bold);heading.Text="Willkommen.";heading.Margin=new Padding(0,0,0,10);
   metadata.AutoSize=true;metadata.Dock=DockStyle.Fill;metadata.ForeColor=UI.Muted;metadata.Font=new Font("Segoe UI",11);metadata.Margin=Padding.Empty;
   titleArea.Controls.Add(heading,0,0);titleArea.Controls.Add(metadata,0,1);workspace.Controls.Add(titleArea,0,1);
   tabs.Dock=DockStyle.Fill;var first=new ContentPage("Anleitung");var second=new ContentPage("Ablauf");var third=new ContentPage("Dokumente");var fourth=new ContentPage("Textansicht");
   tabs.TabPages.Add(first);
-  var scroll=new Panel{Dock=DockStyle.Fill,AutoScroll=true,BackColor=UI.Pale};reader.Location=Point.Empty;reader.Width=700;reader.Height=460;reader.OpenAttachment+=OpenDocumentFile;scroll.Controls.Add(reader);
+  var scroll=new Panel{Dock=DockStyle.Fill,AutoScroll=true,BackColor=UI.Pale};reader.Location=Point.Empty;reader.Width=700;reader.Height=460;reader.OpenAttachment+=OpenDocumentFile;reader.DownloadAttachment+=SaveCopy;scroll.Controls.Add(reader);
   scroll.Resize+=delegate{reader.Width=Math.Max(200,scroll.ClientSize.Width-SystemInformation.VerticalScrollBarWidth-2);reader.Invalidate();};first.Controls.Add(scroll);
   instructions.Dock=DockStyle.Fill;instructions.ReadOnly=true;instructions.BackColor=Color.White;instructions.BorderStyle=BorderStyle.None;instructions.Font=Font;instructions.DetectUrls=false;instructions.AccessibleName="Vollständige Arbeitsanweisung als auswählbarer Text";
   var textSurface=new Surface{Dock=DockStyle.Fill,Padding=new Padding(24)};textSurface.Controls.Add(instructions);fourth.Controls.Add(textSurface);
@@ -330,67 +343,47 @@ public class MainForm:Form {
   shell.Controls.Add(workspace,1,0);instructionsScreen=shell;screenHost.Dock=DockStyle.Fill;Controls.Add(screenHost);
   homeScreen=BuildHome();templatesScreen=BuildTemplates();foreach(var screen in new Control[]{instructionsScreen,templatesScreen,homeScreen}){screen.Dock=DockStyle.Fill;screenHost.Controls.Add(screen);}ShowScreen(homeScreen);
   search.TextChanged+=delegate{Filter();};departments.SelectedIndexChanged+=delegate{Filter();};list.SelectedIndexChanged+=delegate{Render();};
-  Shown+=delegate{list.ItemHeight=(int)(116*DeviceScale());Populate();sidebar.RowStyles[3].Height=search.PreferredHeight+24*DeviceScale();if(File.Exists(config)){try{root=File.ReadAllText(config,Encoding.UTF8).Trim();RefreshCatalog(true);}catch{online=false;}}Render();SetStatus();UpdateButtons();};
-  timer.Interval=30000;timer.Tick+=delegate{if(!String.IsNullOrWhiteSpace(root))RefreshCatalog(true);};timer.Start();FormClosed+=delegate{timer.Dispose();if(logo.Image!=null)logo.Image.Dispose();foreach(var screen in new Control[]{homeScreen,templatesScreen,instructionsScreen})if(screen!=null&&!screen.IsDisposed)screen.Dispose();};
+  Shown+=delegate{list.ItemHeight=(int)(82*DeviceScale());Populate();sidebar.RowStyles[3].Height=search.PreferredHeight+24*DeviceScale();if(!Environment.GetCommandLineArgs().Contains("--capture")&&File.Exists(config)){try{root=File.ReadAllText(config,Encoding.UTF8).Trim();RefreshCatalog(true);}catch{online=false;}}Render();SetStatus();UpdateButtons();};
+  timer.Interval=30000;timer.Tick+=delegate{if(!String.IsNullOrWhiteSpace(root))RefreshCatalog(true);};timer.Start();FormClosed+=delegate{timer.Dispose();foreach(var screen in new Control[]{homeScreen,templatesScreen,instructionsScreen})if(screen!=null&&!screen.IsDisposed)screen.Dispose();};
  }
+ public void CaptureView(string view){if(view=="guide"){departments.SelectedItem="Miethäuser";ShowScreen(instructionsScreen);}else if(view=="templates")ShowScreen(templatesScreen);else ShowScreen(homeScreen);}
  void ShowScreen(Control screen){
   foreach(Control item in screenHost.Controls)item.Visible=item==screen;screen.BringToFront();
   if(screen==templatesScreen)UpdateTemplates();
  }
  Panel BuildHome(){
-  var page=new Panel{BackColor=UI.Pale,Padding=new Padding(52),AutoScroll=true};
-  var layout=new TableLayoutPanel{Dock=DockStyle.Top,AutoSize=true,ColumnCount=1,RowCount=6};
-  var brand=new PictureBox{Image=UI.Logo(),SizeMode=PictureBoxSizeMode.Zoom,Size=new Size(460,112),Margin=new Padding(0,0,0,28)};
-  page.Disposed+=delegate{if(brand.Image!=null)brand.Image.Dispose();};
-  layout.Controls.Add(brand);
-  layout.Controls.Add(new Label{Text="Was möchtest du öffnen?",AutoSize=true,Font=new Font("Segoe UI",26,FontStyle.Bold),Margin=new Padding(0,0,0,12)});
-  layout.Controls.Add(new Label{Text="Arbeitsabläufe nachlesen oder die passende Vorlage finden.",AutoSize=true,ForeColor=UI.Muted,Margin=new Padding(0,0,0,32)});
-  var choices=new TableLayoutPanel{AutoSize=true,Dock=DockStyle.Top,ColumnCount=2,RowCount=1};
-  choices.ColumnStyles.Add(new ColumnStyle(SizeType.Percent,50));choices.ColumnStyles.Add(new ColumnStyle(SizeType.Percent,50));
-  var guide=UI.Button("Anleitung",delegate{ShowScreen(instructionsScreen);});UI.Primary(guide);
-  var templates=UI.Button("Vorlagen",delegate{ShowScreen(templatesScreen);});
-  foreach(var b in new[]{guide,templates}){b.Font=new Font("Segoe UI",22,FontStyle.Bold);b.MinimumSize=new Size(260,150);b.Dock=DockStyle.Fill;b.Margin=new Padding(0,0,20,24);}
-  choices.Controls.Add(guide,0,0);choices.Controls.Add(templates,1,0);layout.Controls.Add(choices);
-  var settings=new FlowLayoutPanel{AutoSize=true,Dock=DockStyle.Top};
-  settings.Controls.Add(UI.Button("Einstellungen · Datenordner",delegate{ChooseFolder();}));
-  settings.Controls.Add(UI.Button("Bearbeiterkonten",delegate{EditorAccounts();}));
-  settings.Controls.Add(UI.Button("Hilfe",delegate{ShowHelp();}));layout.Controls.Add(settings);page.Controls.Add(layout);return page;
+  var page=new Panel{BackColor=UI.Pale,Padding=new Padding(46,30,46,30),AutoScroll=true};
+  var layout=new TableLayoutPanel{Dock=DockStyle.Top,AutoSize=true,ColumnCount=1};layout.ColumnStyles.Add(new ColumnStyle(SizeType.Percent,100));
+  var header=new TableLayoutPanel{Dock=DockStyle.Top,AutoSize=true,ColumnCount=2,Margin=new Padding(0,0,0,32)};header.ColumnStyles.Add(new ColumnStyle(SizeType.Percent,100));header.ColumnStyles.Add(new ColumnStyle(SizeType.AutoSize));header.Controls.Add(new BrandView{Size=new Size(300,64)},0,0);header.Controls.Add(UI.Button("Einstellungen",delegate{ChooseFolder();}),1,0);layout.Controls.Add(header);
+  layout.Controls.Add(new Label{Text="GUT ORGANISIERT. GEMEINSAM WEITER.",AutoSize=true,Font=new Font("Segoe UI",9,FontStyle.Bold),ForeColor=UI.OrangeText,Margin=new Padding(0,0,0,14)});
+  layout.Controls.Add(new Label{Text="Wissen, das den\nAlltag leichter macht.",AutoSize=true,Font=new Font("Segoe UI",32,FontStyle.Bold),Margin=new Padding(0,0,0,18)});
+  layout.Controls.Add(new Label{Text="Anleitungen und Vorlagen für unsere tägliche Zusammenarbeit.",AutoSize=true,ForeColor=UI.Muted,Font=new Font("Segoe UI",12),Margin=new Padding(0,0,0,28)});
+  var choices=new TableLayoutPanel{Dock=DockStyle.Top,Height=300,ColumnCount=2,Margin=new Padding(0,0,0,18)};choices.ColumnStyles.Add(new ColumnStyle(SizeType.Percent,50));choices.ColumnStyles.Add(new ColumnStyle(SizeType.Percent,50));
+  var guide=new NavigationCard{Text="Anleitung",Subtitle="Arbeitsabläufe verstehen",Description="Klare Schritte und passende Checklisten zum Herunterladen direkt beim Vorgang.",Dock=DockStyle.Fill,Margin=new Padding(0,0,12,0)};guide.Click+=delegate{ShowScreen(instructionsScreen);};
+  var forms=new NavigationCard{Text="Vorlagen",Subtitle="Formulare und Schreiben",Description="Gemeinsame Briefvorlagen und Formulare finden und als eigene Kopie speichern.",Dock=DockStyle.Fill,Margin=new Padding(12,0,0,0)};forms.Click+=delegate{ShowScreen(templatesScreen);};choices.Controls.Add(guide,0,0);choices.Controls.Add(forms,1,0);layout.Controls.Add(choices);
+  layout.Controls.Add(new Label{Text="3 Bereiche · 12 Unterkategorien · Ein gemeinsames Handbuch",AutoSize=true,Font=new Font("Segoe UI",9),ForeColor=UI.Muted,Margin=new Padding(0,0,0,20)});
+  var settings=new FlowLayoutPanel{AutoSize=true,Dock=DockStyle.Top};settings.Controls.Add(UI.Button("Bearbeiterkonten",delegate{EditorAccounts();}));settings.Controls.Add(UI.Button("Hilfe",delegate{ShowHelp();}));layout.Controls.Add(settings);page.Controls.Add(layout);return page;
  }
+ readonly TableLayoutPanel templateRows=new TableLayoutPanel{Dock=DockStyle.Top,AutoSize=true,AutoSizeMode=AutoSizeMode.GrowAndShrink,ColumnCount=1};
  Panel BuildTemplates(){
   var page=new Panel{BackColor=UI.Pale,Padding=new Padding(36)};
-  var layout=new TableLayoutPanel{Dock=DockStyle.Fill,ColumnCount=1,RowCount=5};
-  layout.RowStyles.Add(new RowStyle(SizeType.AutoSize));layout.RowStyles.Add(new RowStyle(SizeType.AutoSize));layout.RowStyles.Add(new RowStyle(SizeType.AutoSize));layout.RowStyles.Add(new RowStyle(SizeType.Percent,100));layout.RowStyles.Add(new RowStyle(SizeType.AutoSize));
-  var top=new FlowLayoutPanel{AutoSize=true,Dock=DockStyle.Fill,WrapContents=true};
-  top.Controls.Add(UI.Button("← Hauptmenü",delegate{ShowScreen(homeScreen);}));
-  top.Controls.Add(UI.Button("Aktualisieren",delegate{RefreshCatalog(false);UpdateTemplates();}));
-  top.Controls.Add(UI.Button("Einstellungen · Datenordner",delegate{ChooseFolder();}));
-  uploadTemplate=UI.Button("+ Vorlage hochladen",delegate{UploadTemplate();});UI.Primary(uploadTemplate);top.Controls.Add(uploadTemplate);layout.Controls.Add(top,0,0);
-  layout.Controls.Add(new Label{Text="Vorlagen",AutoSize=true,Font=new Font("Segoe UI",26,FontStyle.Bold),Margin=new Padding(0,26,0,20)},0,1);
-  var searchArea=new TableLayoutPanel{AutoSize=true,Dock=DockStyle.Fill,ColumnCount=1,Padding=new Padding(0,0,0,20)};
-  searchArea.Controls.Add(new Label{Text="Vorlagen durchsuchen",AutoSize=true,Margin=new Padding(0,0,0,8)});
-  templateSearch.Dock=DockStyle.Top;templateSearch.AccessibleName="Vorlagen durchsuchen";templateSearch.TextChanged+=delegate{UpdateTemplates();};searchArea.Controls.Add(templateSearch);layout.Controls.Add(searchArea,0,2);
-  var card=new Surface{Dock=DockStyle.Fill,Padding=new Padding(24)};
-  templateList.Dock=DockStyle.Fill;templateList.View=View.Details;templateList.FullRowSelect=true;templateList.MultiSelect=false;templateList.HideSelection=false;templateList.BorderStyle=BorderStyle.None;
-  templateList.Columns.Add("Vorlage",520);templateList.Columns.Add("Dateityp",120);
-  templateList.DoubleClick+=delegate{OpenSelectedTemplate();};templateList.KeyDown+=delegate(object sender,KeyEventArgs e){if(e.KeyCode==Keys.Enter)OpenSelectedTemplate();};
-  card.Controls.Add(templateList);layout.Controls.Add(card,0,3);
-  var bottom=new TableLayoutPanel{AutoSize=true,Dock=DockStyle.Fill,ColumnCount=1};
-  templateStatus.AutoSize=true;templateStatus.ForeColor=UI.Muted;templateStatus.Margin=new Padding(0,14,0,14);bottom.Controls.Add(templateStatus);
-  var buttons=new FlowLayoutPanel{AutoSize=true,Dock=DockStyle.Top};buttons.Controls.Add(UI.Button("Öffnen",delegate{OpenSelectedTemplate();}));
-  buttons.Controls.Add(UI.Button("Kopie speichern …",delegate{if(templateList.SelectedItems.Count>0)SaveCopy((Attachment)templateList.SelectedItems[0].Tag);}));
-  bottom.Controls.Add(buttons);layout.Controls.Add(bottom,0,4);page.Controls.Add(layout);return page;
+  var layout=new TableLayoutPanel{Dock=DockStyle.Fill,ColumnCount=1,RowCount=6};layout.ColumnStyles.Add(new ColumnStyle(SizeType.Percent,100));
+  for(int i=0;i<6;i++)layout.RowStyles.Add(new RowStyle(i==4?SizeType.Percent:SizeType.AutoSize,i==4?100:0));
+  var top=new FlowLayoutPanel{AutoSize=true,Dock=DockStyle.Fill};top.Controls.Add(UI.Button("← Hauptmenü",delegate{ShowScreen(homeScreen);}));top.Controls.Add(UI.Button("Aktualisieren",delegate{RefreshCatalog(false);UpdateTemplates();}));uploadTemplate=UI.Button("+ Vorlage hochladen",delegate{UploadTemplate();});UI.Primary(uploadTemplate);top.Controls.Add(uploadTemplate);layout.Controls.Add(top,0,0);
+  layout.Controls.Add(new Label{Text="Die richtige Vorlage.\nDirekt zur Hand.",AutoSize=true,Font=new Font("Segoe UI",26,FontStyle.Bold),Margin=new Padding(0,26,0,12)},0,1);
+  layout.Controls.Add(new Label{Text="Formulare und Schreiben für den Arbeitsalltag.",AutoSize=true,ForeColor=UI.Muted,Margin=new Padding(0,0,0,22)},0,2);
+  var searchArea=new Surface{Height=46,Dock=DockStyle.Top,Padding=new Padding(16,12,16,10),Margin=new Padding(0,0,0,24)};templateSearch.BorderStyle=BorderStyle.None;templateSearch.Dock=DockStyle.Fill;templateSearch.AccessibleName="Formulare und Schreiben durchsuchen";templateSearch.TextChanged+=delegate{UpdateTemplates();};searchArea.Controls.Add(templateSearch);layout.Controls.Add(searchArea,0,3);
+  var scroll=new Panel{Dock=DockStyle.Fill,AutoScroll=true};templateRows.ColumnStyles.Add(new ColumnStyle(SizeType.Percent,100));scroll.Controls.Add(templateRows);layout.Controls.Add(scroll,0,4);
+  templateStatus.AutoSize=true;templateStatus.ForeColor=UI.Muted;templateStatus.Font=new Font("Segoe UI",9);templateStatus.Margin=new Padding(0,18,0,0);layout.Controls.Add(templateStatus,0,5);page.Controls.Add(layout);return page;
  }
  void UpdateTemplates(){
-  if(uploadTemplate==null)return;
-  uploadTemplate.Visible=CanEdit;
-  string selected=templateList.SelectedItems.Count>0?((Attachment)templateList.SelectedItems[0].Tag).File:null;
-  templateList.BeginUpdate();templateList.Items.Clear();
-  foreach(var a in Builtins.Available(catalog).Where(x=>x.Name.IndexOf(templateSearch.Text.Trim(),StringComparison.CurrentCultureIgnoreCase)>=0)){
-   var item=new ListViewItem(a.Name);item.SubItems.Add(Path.GetExtension(a.File).TrimStart('.').ToUpperInvariant());item.Tag=a;templateList.Items.Add(item);if(a.File==selected)item.Selected=true;
-  }
-  templateList.EndUpdate();
-  templateStatus.Text=!online?(String.IsNullOrWhiteSpace(root)?"Mitgelieferte Checklisten sind ohne Datenordner verfügbar. Über „Kopie speichern“ herunterladen.":"Mitgelieferte Checklisten verfügbar. Für weitere Dokumente die Verbindung prüfen."):
-   templateList.Items.Count==0?(CanEdit?"Noch keine passenden Vorlagen. Über „Vorlage hochladen“ eine Datei bereitstellen.":"Noch keine passenden Vorlagen verfügbar."):templateList.Items.Count+" Vorlagen · Über „Kopie speichern“ lokal herunterladen.";
+  if(uploadTemplate==null)return;uploadTemplate.Visible=CanEdit;
+  var files=Builtins.Available(catalog).Where(x=>x.Name.IndexOf(templateSearch.Text.Trim(),StringComparison.CurrentCultureIgnoreCase)>=0).ToList();
+  templateRows.SuspendLayout();foreach(Control c in templateRows.Controls.Cast<Control>().ToArray())c.Dispose();templateRows.Controls.Clear();
+  if(files.Count==0){var empty=new RoundedCard();empty.TextLine(templateSearch.Text.Trim()==""?"Platz für eure Formulare und Schreiben":"Keine passenden Vorlagen",17,FontStyle.Bold,UI.Ink,14);empty.TextLine("Zum Beispiel eine Wohnungsbewerbung oder ein Anschreiben. Veröffentlichte Dateien stehen hier allen Mitarbeitern zur Verfügung.",11,FontStyle.Regular,UI.Muted,18);empty.TextLine("Checklisten zu Vorgängen findest du direkt in der jeweiligen Anleitung.",10,FontStyle.Regular,UI.Muted,0);templateRows.Controls.Add(empty);}
+  foreach(var a in files){var card=new RoundedCard();card.ColumnCount=2;card.ColumnStyles.Add(new ColumnStyle(SizeType.AutoSize));var label=new Label{Text=a.Name,AutoSize=true,Dock=DockStyle.Fill,ForeColor=UI.Ink,Font=new Font("Segoe UI",11,FontStyle.Bold),Margin=new Padding(0,10,20,8),BackColor=Color.White};card.Controls.Add(label,0,0);var buttons=new FlowLayoutPanel{AutoSize=true,WrapContents=false,BackColor=Color.White};buttons.Controls.Add(UI.Button("Öffnen",delegate{OpenDocumentFile(a);}));var save=UI.Button("Kopie speichern",delegate{SaveCopy(a);});UI.Primary(save);buttons.Controls.Add(save);card.Controls.Add(buttons,1,0);templateRows.Controls.Add(card);}
+  templateRows.ResumeLayout(true);
+  templateStatus.Text=String.IsNullOrWhiteSpace(root)?"Gemeinsamen Datenordner über Einstellungen verbinden.":!online?"Verbindung unterbrochen. Bitte Netzlaufwerk prüfen.":files.Count+" Vorlagen · Als persönliche Kopie speichern und bearbeiten.";
  }
  void OpenSelectedTemplate(){if(templateList.SelectedItems.Count>0)OpenDocumentFile((Attachment)templateList.SelectedItems[0].Tag);}
  void UploadTemplate(){
@@ -425,11 +418,11 @@ public class MainForm:Form {
   Rectangle card=new Rectangle(e.Bounds.X,e.Bounds.Y,e.Bounds.Width,e.Bounds.Height-gap);
   using(var fill=new SolidBrush(active?UI.Peach:UI.Pale))using(var path=UI.Round(Rectangle.Inflate(card,-1,-2),12))e.Graphics.FillPath(fill,path);
   
-  var titleRect=new Rectangle(card.X+pad,card.Y+(int)(11*scale),card.Width-pad*2,(int)(60*scale));
-  var metaRect=new Rectangle(card.X+pad,card.Y+(int)(78*scale),card.Width-pad*2,(int)(23*scale));
-  using(var f=new Font("Segoe UI",12,FontStyle.Bold))TextRenderer.DrawText(e.Graphics,p.Title,f,titleRect,UI.Ink,TextFormatFlags.EndEllipsis|TextFormatFlags.WordBreak);
+  var titleRect=new Rectangle(card.X+pad,card.Y+(int)(11*scale),card.Width-pad*2,(int)(42*scale));
+  var metaRect=new Rectangle(card.X+pad,card.Y+(int)(54*scale),card.Width-pad*2,(int)(23*scale));
+  using(var f=new Font("Segoe UI",10,FontStyle.Bold))TextRenderer.DrawText(e.Graphics,p.Title,f,titleRect,UI.Ink,TextFormatFlags.EndEllipsis|TextFormatFlags.WordBreak);
   string info=p.Department+(p.Steps.Count==0?" · Ablauf folgt":" · "+p.Steps.Count+" Schritte");
-  using(var small=new Font("Segoe UI",10.5f))TextRenderer.DrawText(e.Graphics,info,small,metaRect,UI.Muted,TextFormatFlags.EndEllipsis|TextFormatFlags.SingleLine);
+  using(var small=new Font("Segoe UI",8.5f))TextRenderer.DrawText(e.Graphics,info,small,metaRect,UI.Muted,TextFormatFlags.EndEllipsis|TextFormatFlags.SingleLine);
   if((e.State&DrawItemState.Focus)!=0)ControlPaint.DrawFocusRectangle(e.Graphics,Rectangle.Inflate(card,-3,-3),UI.Ink,active?UI.Peach:UI.Pale);
  }
  void UpdateButtons(){UpdateTemplates();add.Visible=edit.Visible=delete.Visible=CanEdit;add.Enabled=CanEdit;edit.Enabled=CanEdit&&Selected!=null;delete.Enabled=CanEdit&&Selected!=null&&catalog.Processes.Any(p=>p.Id==Selected.Id);}
@@ -441,7 +434,7 @@ public class MainForm:Form {
    var sid=new TextBox{Text=Storage.Sid(),ReadOnly=true,Dock=DockStyle.Fill};layout.Controls.Add(sid,0,1);
    layout.Controls.Add(UI.Label("Deine Mac-Kennung (aus den Einstellungen der Mac-App)"),0,2);
    var mac=new TextBox{Text=catalog.EditorMacId??"",ReadOnly=!CanEdit,Dock=DockStyle.Fill};layout.Controls.Add(mac,0,3);
-   layout.Controls.Add(new Label{Text=CanEdit?"Du kannst dein eigenes Mac-Konto zusätzlich freigeben. Nach dem Speichern benötigen alle Windows-Nutzer Version 0.7.0 oder neuer. Die tatsächlichen Lese- und Änderungsrechte setzt eure IT am Datenordner.":"Für ein am Mac angelegtes Handbuch: Übertrage deine Windows-Kennung in den Einstellungen der Mac-App. Nur der bereits freigegebene Bearbeiter darf Konten freigeben.",Dock=DockStyle.Fill,Padding=new Padding(0,12,0,0)},0,4);
+   layout.Controls.Add(new Label{Text=CanEdit?"Du kannst dein eigenes Mac-Konto zusätzlich freigeben. Nach dem Speichern benötigen alle Windows-Nutzer Version 0.8.0 oder neuer. Die tatsächlichen Lese- und Änderungsrechte setzt eure IT am Datenordner.":"Für ein am Mac angelegtes Handbuch: Übertrage deine Windows-Kennung in den Einstellungen der Mac-App. Nur der bereits freigegebene Bearbeiter darf Konten freigeben.",Dock=DockStyle.Fill,Padding=new Padding(0,12,0,0)},0,4);
    var save=UI.Button("Mac-Freigabe speichern",delegate{
     if(!CanEdit)return;string id=mac.Text.Trim();if(id!=""&&!System.Text.RegularExpressions.Regex.IsMatch(id,@"^mac:[A-Za-z0-9.:-]+$")){UI.Error(new Exception("Bitte die vollständige Mac-Kennung übernehmen."));return;}
     try{var next=Storage.Clone(catalog);next.EditorMacId=id;Storage.Save(root,next,catalog.Revision);dataGeneration++;catalog=next;UpdateButtons();SetStatus();f.Close();}catch(Exception e){UI.Error(e);}
@@ -604,6 +597,11 @@ public class EditorForm:Form {
  }
 }
 public static class Program {
- [STAThread] public static void Main(string[] args){Application.EnableVisualStyles();Application.SetCompatibleTextRenderingDefault(false);Application.ThreadException+=delegate(object sender,System.Threading.ThreadExceptionEventArgs e){UI.Error(e.Exception);};try{Application.Run(new MainForm());}catch(Exception e){UI.Error(e);}}
+ [STAThread] public static void Main(string[] args){
+  Application.EnableVisualStyles();Application.SetCompatibleTextRenderingDefault(false);
+  bool capture=args.Length>=3&&args[0]=="--capture";
+  Application.ThreadException+=delegate(object sender,System.Threading.ThreadExceptionEventArgs e){if(capture){Console.Error.WriteLine(e.Exception);Environment.Exit(1);}else UI.Error(e.Exception);};
+  try{var form=new MainForm();if(capture){var timer=new System.Windows.Forms.Timer{Interval=1400};int ticks=0;form.Shown+=delegate{form.CaptureView(args[1]);timer.Start();};timer.Tick+=delegate{if(++ticks<2)return;timer.Stop();form.PerformLayout();using(var image=new Bitmap(form.Width,form.Height)){form.DrawToBitmap(image,new Rectangle(Point.Empty,form.Size));image.Save(args[2],System.Drawing.Imaging.ImageFormat.Png);}timer.Dispose();form.Close();};}Application.Run(form);}catch(Exception e){if(capture){Console.Error.WriteLine(e);Environment.Exit(1);}else UI.Error(e);}
+ }
 }
 }

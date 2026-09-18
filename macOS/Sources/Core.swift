@@ -107,7 +107,7 @@ enum Builtins {
     }
     static func templates(for catalog: Catalog) -> [Attachment] {
         var seen = Set<String>()
-        return (templates + catalog.Templates).filter { seen.insert($0.File).inserted }
+        return catalog.Templates.filter { !contains($0.File) && seen.insert($0.File).inserted }
     }
 }
 

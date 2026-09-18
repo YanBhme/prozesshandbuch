@@ -230,7 +230,7 @@ struct MainView: View {
                 Circle().fill(model.online ? Color.green : Color.brandOrange).frame(width: 6, height: 6)
                 Text(model.status).font(.system(size: 11))
                 Spacer()
-                Text("Prozesshandbuch · \(Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "0.7.0")").font(.system(size: 11))
+                Text("Prozesshandbuch · \(Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "0.8.0")").font(.system(size: 11))
             }.foregroundColor(.secondary).padding(.horizontal, 24).padding(.vertical, 12).background(Color.white)
         }.background(Color.paper).foregroundColor(.ink)
             .frame(minWidth: 1050, minHeight: 720)
@@ -253,7 +253,7 @@ struct MainView: View {
             }
             HStack(spacing: 22) {
                 homeCard("Anleitung", "book.closed", "Arbeitsabläufe verstehen", "Alle Bereiche, klare Schritte und wichtige Dokumente an einem Ort.")
-                homeCard("Vorlagen", "doc.on.doc", "Direkt mit der richtigen Vorlage starten", "Gemeinsame Dokumente finden und als lokale Kopie herunterladen.")
+                homeCard("Vorlagen", "doc.on.doc", "Formulare und Schreiben", "Briefvorlagen und Formulare finden und als eigene Kopie speichern.")
             }
             Text("3 Bereiche · 12 Unterkategorien · Ein gemeinsames Handbuch").font(.system(size: 12)).foregroundColor(.secondary)
         }.padding(36).frame(maxWidth: 1250)
@@ -354,7 +354,7 @@ struct MainView: View {
                     }
                 }
                 ForEach(s.Documents) { a in
-                    Button { model.copy(a, open: true) } label: { Label(a.Name, systemImage: "doc") }.disabled(!model.canAccess(a) || model.busy)
+                    documentRow(a)
                 }
                 Divider()
                 Text(route(s)).font(.caption).foregroundColor(.secondary)
@@ -364,7 +364,7 @@ struct MainView: View {
     private var templates: some View {
         VStack(alignment: .leading, spacing: 20) {
             HStack {
-                VStack(alignment: .leading, spacing: 8) { Text("Die richtige Vorlage.\nDirekt zur Hand.").font(.system(size: 32, weight: .semibold)); Text("Persönliche Kopie speichern und abhaken – digital oder auf Papier.").foregroundColor(.secondary) }
+                VStack(alignment: .leading, spacing: 8) { Text("Die richtige Vorlage.\nDirekt zur Hand.").font(.system(size: 32, weight: .semibold)); Text("Formulare und Schreiben für den Arbeitsalltag.").foregroundColor(.secondary) }
                 Spacer()
                 if model.canEdit { Button { model.uploadTemplates() } label: { Label("Vorlage hochladen", systemImage: "plus") }.buttonStyle(SoftButton(primary: true)).disabled(model.busy) }
             }
@@ -372,7 +372,7 @@ struct MainView: View {
             ScrollView {
                 VStack(spacing: 12) {
                     let files = Builtins.templates(for: model.catalog).filter { query.isEmpty || $0.Name.localizedStandardContains(query) }
-                    if files.isEmpty { Card { VStack(alignment: .leading, spacing: 12) { Text(query.isEmpty ? "Noch keine Vorlagen hinterlegt" : "Keine passenden Vorlagen").font(.title2.bold()); Text(model.canEdit ? "Über „Vorlage hochladen“ kannst du Dokumente für alle bereitstellen." : "Veröffentlichte Vorlagen erscheinen hier, sobald ein Datenordner verbunden ist.").foregroundColor(.secondary) } } }
+                    if files.isEmpty { Card { VStack(alignment: .leading, spacing: 12) { Text(query.isEmpty ? "Platz für eure Formulare und Schreiben" : "Keine passenden Vorlagen").font(.title2.bold()); Text(model.canEdit ? "Über „Vorlage hochladen“ kannst du Dokumente für alle bereitstellen." : "Zum Beispiel eine Wohnungsbewerbung oder ein Anschreiben. Checklisten zu Vorgängen findest du direkt in der jeweiligen Anleitung.").foregroundColor(.secondary) } } }
                     ForEach(files) { a in documentRow(a) }
                 }
             }

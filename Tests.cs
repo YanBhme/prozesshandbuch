@@ -13,7 +13,8 @@ public static class StorageTests {
    Check(Structure.Entries(c).Count()==12&&Structure.Entries(c).Count(x=>x.Steps.Count==9)==1&&c.Processes.Count==0,"Mitgelieferte Checkliste ohne Änderung gemeinsamer Daten");
    var builtin=Builtins.ProcedureFor("Miethäuser","Checkliste Mieterwechsel");
    Check(builtin.Steps.Count==9&&builtin.Steps.Sum(x=>x.Checklist.Split('\n').Length)==96,"Neun freigegebene Abschnitte und 96 Prüfpunkte");
-   Check(Builtins.Available(c).Count==10&&c.Templates.Count==0,"Zehn Vorlagen ohne Katalogmutation");
+   Check(Builtins.Available(c).Count==0&&Builtins.Templates().Count==10&&builtin.Steps.SelectMany(x=>x.Documents).Select(x=>x.File).Distinct().Count()==10,"Checklisten nur über die Anleitung erreichbar");
+   var forms=Storage.Clone(c);forms.Templates.Add(Builtins.Templates()[0]);forms.Templates.Add(new Attachment{Name="Wohnungsbewerbung.pdf",File="bewerbung.pdf"});Check(Builtins.Available(forms).Count==1&&Builtins.Available(forms)[0].File=="bewerbung.pdf","Formulare sichtbar, Checklisten ausgeblendet");
    var custom=Storage.Clone(c);var overrideP=Storage.Clone(builtin);overrideP.Steps.Clear();custom.Processes.Add(overrideP);
    Check(Structure.Entries(custom).Single(x=>x.Topic=="Checkliste Mieterwechsel").Steps.Count==0,"Eigene Anleitung hat Vorrang");
    string copy=Path.Combine(Path.GetTempPath(),Guid.NewGuid().ToString("N")+".pdf");

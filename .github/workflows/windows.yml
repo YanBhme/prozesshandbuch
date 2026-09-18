@@ -15,10 +15,20 @@ jobs:
         run: |
           $env:PH_FIXTURE_OUT = Join-Path $env:RUNNER_TEMP 'windows-fixture'
           ./build.ps1
+      - name: Capture Windows UI
+        shell: powershell
+        run: |
+          foreach ($view in @('home','guide','templates')) {
+            $image = Join-Path $PWD "dist/Windows-$view.png"
+            $process = Start-Process -FilePath "$PWD/dist/Prozesshandbuch.exe" -ArgumentList @('--capture',$view,$image) -PassThru -Wait
+            if ($process.ExitCode -ne 0 -or !(Test-Path $image)) { throw "UI capture failed: $view" }
+          }
       - uses: actions/upload-artifact@v4
         with:
           name: Prozesshandbuch-Windows
-          path: dist/Prozesshandbuch-Windows.zip
+          path: |
+            dist/Prozesshandbuch-Windows.zip
+            dist/Windows-*.png
           if-no-files-found: error
       - uses: actions/upload-artifact@v4
         with:
