@@ -156,7 +156,7 @@ public class SoftButton:Button {
   var g=e.Graphics;g.SmoothingMode=SmoothingMode.AntiAlias;g.Clear(Parent==null?UI.Pale:Parent.BackColor);
   var rect=new Rectangle(1,1,Width-3,Height-3);Color fill=Enabled?(down?FlatAppearance.MouseDownBackColor:hover?FlatAppearance.MouseOverBackColor:BackColor):UI.Pale;
   using(var path=UI.Round(rect,11))using(var brush=new SolidBrush(fill)){g.FillPath(brush,path);}
-  var flags=TextFormatFlags.HorizontalCenter|TextFormatFlags.VerticalCenter|TextFormatFlags.EndEllipsis;
+  var flags=TextFormatFlags.VerticalCenter|TextFormatFlags.EndEllipsis|(TextAlign==ContentAlignment.MiddleLeft?TextFormatFlags.Left:TextFormatFlags.HorizontalCenter);
   if(!ShowKeyboardCues)flags|=TextFormatFlags.HidePrefix;
   TextRenderer.DrawText(g,Text,Font,Rectangle.Inflate(rect,-8,-2),Enabled?ForeColor:UI.Muted,flags);
   if(Focused&&ShowFocusCues)using(var path=UI.Round(Rectangle.Inflate(rect,-3,-3),8))using(var pen=new Pen(UI.Orange,2))g.DrawPath(pen,path);
@@ -189,6 +189,11 @@ public class ModernTabs:UserControl {
  protected override void Dispose(bool disposing){if(disposing)foreach(var p in TabPages)if(!p.IsDisposed)p.Dispose();base.Dispose(disposing);}
 }
 // Native controls retain keyboard navigation and readable text at Windows display scaling.
+public class SearchField:TextBox {
+ public string Prompt="Suchen …";
+ [System.Runtime.InteropServices.DllImport("user32.dll",CharSet=System.Runtime.InteropServices.CharSet.Unicode)]static extern IntPtr SendMessage(IntPtr window,int message,IntPtr wParam,string text);
+ protected override void OnHandleCreated(EventArgs e){base.OnHandleCreated(e);SendMessage(Handle,0x1501,new IntPtr(1),Prompt);}
+}
 public class BrandView:Control {
  public BrandView(){DoubleBuffered=true;ResizeRedraw=true;SetStyle(ControlStyles.SupportsTransparentBackColor,true);BackColor=Color.Transparent;AccessibleName="Bruno Grüttner Grundstücksverwaltungen Immobilien e.K.";Size=new Size(290,60);}
  protected override void OnPaint(PaintEventArgs e){
@@ -209,11 +214,11 @@ public class RoundedCard:TableLayoutPanel {
  protected override void OnPaintBackground(PaintEventArgs e){e.Graphics.Clear(Parent==null?UI.Pale:Parent.BackColor);e.Graphics.SmoothingMode=SmoothingMode.AntiAlias;using(var path=UI.Round(new Rectangle(0,0,Width-1,Height-1),20))using(var brush=new SolidBrush(Fill))e.Graphics.FillPath(brush,path);}
  public Label TextLine(string text,float size,FontStyle style,Color color,int bottom){var l=new Label{Text=text,AutoSize=true,Dock=DockStyle.Fill,Font=new Font("Segoe UI",size,style),ForeColor=color,BackColor=Fill,Margin=new Padding(0,0,0,bottom)};Controls.Add(l);return l;}
 }
-public class ReadingCanvas:UserControl {
+public class ReadingCanvas:TableLayoutPanel {
  public event Action<Attachment> OpenAttachment;
  public event Action<Attachment> DownloadAttachment;
- readonly TableLayoutPanel stack=new TableLayoutPanel{Dock=DockStyle.Top,AutoSize=true,AutoSizeMode=AutoSizeMode.GrowAndShrink,ColumnCount=1,Padding=Padding.Empty,Margin=Padding.Empty};
- public ReadingCanvas(){AutoSize=true;AutoSizeMode=AutoSizeMode.GrowAndShrink;BackColor=UI.Pale;stack.ColumnStyles.Add(new ColumnStyle(SizeType.Percent,100));Controls.Add(stack);AccessibleName="Prozessanleitung";}
+ readonly TableLayoutPanel stack;
+ public ReadingCanvas(){stack=this;AutoSize=true;AutoSizeMode=AutoSizeMode.GrowAndShrink;ColumnCount=1;Padding=Padding.Empty;Margin=Padding.Empty;BackColor=UI.Pale;ColumnStyles.Add(new ColumnStyle(SizeType.Percent,100));AccessibleName="Prozessanleitung";}
  public void SetContent(Procedure process,string message){
   SuspendLayout();stack.SuspendLayout();foreach(Control c in stack.Controls.Cast<Control>().ToArray())c.Dispose();stack.Controls.Clear();
   if(process==null){var empty=new RoundedCard();empty.TextLine("Alles an einem Ort.",19,FontStyle.Bold,UI.Ink,16);empty.TextLine(message??"",10.5f,FontStyle.Regular,UI.Muted,0);stack.Controls.Add(empty);}
@@ -284,10 +289,10 @@ public static class UI {
 }
 public class MainForm:Form {
  string root;Catalog catalog=new Catalog();bool online;bool reading,readAgain;int dataGeneration;string config=Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),"Prozesshandbuch","ordner.txt");
- TextBox search=new TextBox();ComboBox departments=new ComboBox();ListBox list=new ListBox();Label status=new Label();Label heading=new Label();Label metadata=new Label(),resultCount=new Label(),role=new Label();
+ TextBox search=new SearchField{Prompt="Suchbegriff eingeben"};ComboBox departments=new ComboBox();ListBox list=new ListBox();Label status=new Label();Label heading=new Label();Label metadata=new Label(),resultCount=new Label(),role=new Label();
  RichTextBox instructions=new RichTextBox();ListView docs=new ListView();Panel graph=new Panel();ModernTabs tabs=new ModernTabs();ReadingCanvas reader=new ReadingCanvas();Button edit,add,delete;
  Panel screenHost=new Panel();Control instructionsScreen;Panel homeScreen,templatesScreen;
- ListView templateList=new ListView();Label templateStatus=new Label();Button uploadTemplate;TextBox templateSearch=new TextBox();
+ ListView templateList=new ListView();Label templateStatus=new Label();Button uploadTemplate;TextBox templateSearch=new SearchField{Prompt="Formulare und Schreiben durchsuchen"};
  TableLayoutPanel categoryNavigation=new TableLayoutPanel();List<Button> categoryButtons=new List<Button>();
  System.Windows.Forms.Timer timer=new System.Windows.Forms.Timer();
  Procedure Selected {get{return list.SelectedItem as Procedure;}}
@@ -298,6 +303,7 @@ public class MainForm:Form {
   var shell=new TableLayoutPanel{Dock=DockStyle.Fill,ColumnCount=2,RowCount=1,Margin=Padding.Empty,Padding=Padding.Empty};
   shell.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute,300));shell.ColumnStyles.Add(new ColumnStyle(SizeType.Percent,100));
   var sidebar=new TableLayoutPanel{Dock=DockStyle.Fill,BackColor=Color.White,ColumnCount=1,RowCount=9,Padding=new Padding(24,20,24,18),Margin=Padding.Empty};
+  sidebar.ColumnStyles.Add(new ColumnStyle(SizeType.Percent,100));
   foreach(int height in new[]{78,42,24,44,24,184,34})sidebar.RowStyles.Add(new RowStyle(SizeType.Absolute,height));
   sidebar.RowStyles[2].SizeType=SizeType.AutoSize;sidebar.RowStyles[4].SizeType=SizeType.AutoSize;sidebar.RowStyles[5].SizeType=SizeType.AutoSize;
   sidebar.RowStyles.Add(new RowStyle(SizeType.Percent,100));sidebar.RowStyles.Add(new RowStyle(SizeType.Absolute,54));
@@ -309,7 +315,7 @@ public class MainForm:Form {
   search.BorderStyle=BorderStyle.None;search.BackColor=UI.Pale;search.Dock=DockStyle.Fill;search.AccessibleName="Prozessinhalte durchsuchen";searchBox.Controls.Add(search);sidebar.Controls.Add(searchBox,0,3);
   sidebar.Controls.Add(new Label{Text="Kategorie",AutoSize=true,Margin=new Padding(0,8,0,6),ForeColor=UI.Muted},0,4);
   departments.DropDownStyle=ComboBoxStyle.DropDownList;
-  categoryNavigation.AutoSize=true;categoryNavigation.Dock=DockStyle.Fill;categoryNavigation.ColumnCount=1;categoryNavigation.Margin=Padding.Empty;categoryNavigation.AutoScroll=true;
+  categoryNavigation.ColumnStyles.Add(new ColumnStyle(SizeType.Percent,100));categoryNavigation.AutoSize=true;categoryNavigation.Dock=DockStyle.Fill;categoryNavigation.ColumnCount=1;categoryNavigation.Margin=Padding.Empty;categoryNavigation.AutoScroll=true;
   sidebar.Controls.Add(categoryNavigation,0,5);
   resultCount.Dock=DockStyle.Fill;resultCount.TextAlign=ContentAlignment.MiddleLeft;resultCount.ForeColor=UI.Muted;resultCount.Font=new Font("Segoe UI",10.5f);sidebar.Controls.Add(resultCount,0,6);
   list.Dock=DockStyle.Fill;list.BackColor=Color.White;list.BorderStyle=BorderStyle.None;list.DrawMode=DrawMode.OwnerDrawFixed;list.ItemHeight=82;list.IntegralHeight=false;list.DrawItem+=DrawProcess;sidebar.Controls.Add(list,0,7);
@@ -331,7 +337,7 @@ public class MainForm:Form {
   tabs.Dock=DockStyle.Fill;var first=new ContentPage("Anleitung");var second=new ContentPage("Ablauf");var third=new ContentPage("Dokumente");var fourth=new ContentPage("Textansicht");
   tabs.TabPages.Add(first);
   var scroll=new Panel{Dock=DockStyle.Fill,AutoScroll=true,BackColor=UI.Pale};reader.Location=Point.Empty;reader.Width=700;reader.Height=460;reader.OpenAttachment+=OpenDocumentFile;reader.DownloadAttachment+=SaveCopy;scroll.Controls.Add(reader);
-  scroll.Resize+=delegate{reader.Width=Math.Max(200,scroll.ClientSize.Width-SystemInformation.VerticalScrollBarWidth-2);reader.Invalidate();};first.Controls.Add(scroll);
+  scroll.Resize+=delegate{int width=Math.Max(200,scroll.ClientSize.Width-SystemInformation.VerticalScrollBarWidth-2);reader.MaximumSize=new Size(width,0);reader.MinimumSize=new Size(width,0);reader.Width=width;reader.PerformLayout();};first.Controls.Add(scroll);
   instructions.Dock=DockStyle.Fill;instructions.ReadOnly=true;instructions.BackColor=Color.White;instructions.BorderStyle=BorderStyle.None;instructions.Font=Font;instructions.DetectUrls=false;instructions.AccessibleName="Vollständige Arbeitsanweisung als auswählbarer Text";
   var textSurface=new Surface{Dock=DockStyle.Fill,Padding=new Padding(24)};textSurface.Controls.Add(instructions);fourth.Controls.Add(textSurface);
   graph.Dock=DockStyle.Fill;graph.AutoScroll=true;graph.BackColor=UI.Pale;second.Controls.Add(graph);
@@ -346,6 +352,7 @@ public class MainForm:Form {
   Shown+=delegate{list.ItemHeight=(int)(82*DeviceScale());Populate();sidebar.RowStyles[3].Height=search.PreferredHeight+24*DeviceScale();if(!Environment.GetCommandLineArgs().Contains("--capture")&&File.Exists(config)){try{root=File.ReadAllText(config,Encoding.UTF8).Trim();RefreshCatalog(true);}catch{online=false;}}Render();SetStatus();UpdateButtons();};
   timer.Interval=30000;timer.Tick+=delegate{if(!String.IsNullOrWhiteSpace(root))RefreshCatalog(true);};timer.Start();FormClosed+=delegate{timer.Dispose();foreach(var screen in new Control[]{homeScreen,templatesScreen,instructionsScreen})if(screen!=null&&!screen.IsDisposed)screen.Dispose();};
  }
+ public void CaptureLayout(string path){var lines=new List<string>();Action<Control,int> visit=null;visit=delegate(Control c,int depth){lines.Add(new string(' ',depth)+c.GetType().Name+" "+c.Bounds+" visible="+c.Visible);foreach(Control child in c.Controls)visit(child,depth+1);};visit(this,0);File.WriteAllLines(path,lines);}
  public void CaptureView(string view){if(view=="guide"){departments.SelectedItem="Miethäuser";ShowScreen(instructionsScreen);}else if(view=="templates")ShowScreen(templatesScreen);else ShowScreen(homeScreen);}
  void ShowScreen(Control screen){
   foreach(Control item in screenHost.Controls)item.Visible=item==screen;screen.BringToFront();
@@ -477,7 +484,7 @@ public class MainForm:Form {
   for(int i=0;i<values.Count;i++){
    string value=values[i];string label=value=="Alle Kategorien"?"Alle Bereiche":value;
    var b=UI.Button(label,delegate{search.Clear();departments.SelectedItem=value;});
-   b.Tag=value;b.Dock=DockStyle.Fill;b.Margin=new Padding(0,0,0,3);b.Padding=new Padding(8,4,8,4);
+   b.Tag=value;b.AutoSize=false;b.Height=40;b.TextAlign=ContentAlignment.MiddleLeft;b.Dock=DockStyle.Fill;b.Margin=new Padding(0,0,0,3);b.Padding=new Padding(8,4,8,4);
    categoryButtons.Add(b);categoryNavigation.RowStyles.Add(new RowStyle(SizeType.AutoSize));categoryNavigation.Controls.Add(b,0,i);
   }
  }
@@ -601,7 +608,7 @@ public static class Program {
   Application.EnableVisualStyles();Application.SetCompatibleTextRenderingDefault(false);
   bool capture=args.Length>=3&&args[0]=="--capture";
   Application.ThreadException+=delegate(object sender,System.Threading.ThreadExceptionEventArgs e){if(capture){Console.Error.WriteLine(e.Exception);Environment.Exit(1);}else UI.Error(e.Exception);};
-  try{var form=new MainForm();if(capture){var timer=new System.Windows.Forms.Timer{Interval=1400};int ticks=0;form.Shown+=delegate{form.CaptureView(args[1]);timer.Start();};timer.Tick+=delegate{if(++ticks<2)return;timer.Stop();form.PerformLayout();using(var image=new Bitmap(form.Width,form.Height)){form.DrawToBitmap(image,new Rectangle(Point.Empty,form.Size));image.Save(args[2],System.Drawing.Imaging.ImageFormat.Png);}timer.Dispose();form.Close();};}Application.Run(form);}catch(Exception e){if(capture){Console.Error.WriteLine(e);Environment.Exit(1);}else UI.Error(e);}
+  try{var form=new MainForm();if(capture){var timer=new System.Windows.Forms.Timer{Interval=1400};int ticks=0;form.Shown+=delegate{form.CaptureView(args[1]);timer.Start();};timer.Tick+=delegate{if(++ticks<2)return;timer.Stop();form.PerformLayout();form.CaptureLayout(args[2]+".txt");using(var image=new Bitmap(form.Width,form.Height)){form.DrawToBitmap(image,new Rectangle(Point.Empty,form.Size));image.Save(args[2],System.Drawing.Imaging.ImageFormat.Png);}timer.Dispose();form.Close();};}Application.Run(form);}catch(Exception e){if(capture){Console.Error.WriteLine(e);Environment.Exit(1);}else UI.Error(e);}
  }
 }
 }

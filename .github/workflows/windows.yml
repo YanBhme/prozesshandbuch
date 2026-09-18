@@ -29,6 +29,7 @@ jobs:
           path: |
             dist/Prozesshandbuch-Windows.zip
             dist/Windows-*.png
+            dist/Windows-*.png.txt
           if-no-files-found: error
       - uses: actions/upload-artifact@v4
         with:
